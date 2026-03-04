@@ -22,25 +22,65 @@ window.player = {
 };
 
 function updatePlayer() {
-    if (player.moveLeft) player.x -= player.speed;
-    if (player.moveRight) player.x += player.speed;
 
+    // ===== ДВИЖЕНИЕ ПО ГОРИЗОНТАЛИ =====
+    if (player.moveLeft) {
+        player.x -= player.speed;
+    }
+
+    if (player.moveRight) {
+        player.x += player.speed;
+    }
+
+
+    // ===== ОГРАНИЧЕНИЕ УРОВНЯ ПО X =====
+    if (player.x < 0) {
+        player.x = 0;
+    }
+
+    if (player.x + player.width > levelWidth) {
+        player.x = levelWidth - player.width;
+    }
+
+
+    // ===== ГРАВИТАЦИЯ =====
     player.velocityY += player.gravity;
     player.y += player.velocityY;
 
-    if (player.y + player.height >= groundLevel()) {
-        player.y = groundLevel() - player.height;
+
+    // ===== СТОЛКНОВЕНИЕ С ЗЕМЛЁЙ =====
+    const ground = groundLevel();
+
+    if (player.y + player.height >= ground) {
+        player.y = ground - player.height;
         player.velocityY = 0;
         player.onGround = true;
+    } else {
+        player.onGround = false;
     }
 
-    // камера следует за игроком
-    camera.x = player.x - canvas.width / 2 + player.width / 2;
-    if (camera.x < 0) camera.x = 0;
 
-    // если упал слишком глубоко — конец игры
+    // ===== ПАДЕНИЕ В БЕЗДНУ =====
     if (player.y > canvas.height + 300) {
         gameOver = true;
+    }
+
+
+    // ===== STAGE COMPLETE =====
+    if (player.x + player.width >= levelWidth - 5) {
+        gameOver = "complete";
+    }
+
+
+    // ===== КАМЕРА =====
+    camera.x = player.x - canvas.width / 2 + player.width / 2;
+
+    if (camera.x < 0) {
+        camera.x = 0;
+    }
+
+    if (camera.x + canvas.width > levelWidth) {
+        camera.x = levelWidth - canvas.width;
     }
 }
 

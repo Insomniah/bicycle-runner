@@ -1,3 +1,5 @@
+window.levelWidth = 4000; // длина уровня в пикселях
+
 // canvas и контекст
 window.canvas = document.getElementById("gameCanvas");
 window.ctx = canvas.getContext("2d");

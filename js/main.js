@@ -1,6 +1,6 @@
 function drawBackground() {
     ctx.fillStyle = "#87CEEB";
-    ctx.fillRect(camera.x, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // пример рельефа
     ctx.fillStyle = "#228B22";

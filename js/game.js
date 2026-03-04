@@ -2,10 +2,6 @@
 window.canvas = document.getElementById("gameCanvas");
 window.ctx = canvas.getContext("2d");
 
-// базовое разрешение
-canvas.width = 1280;
-canvas.height = 720;
-
 // глобальный масштаб
 window.scale = 1;
 
@@ -14,13 +10,10 @@ window.camera = { x: 0, y: 0 };
 
 // адаптация под экран
 function resize() {
-    const scaleX = window.innerWidth / canvas.width;
-    const scaleY = window.innerHeight / canvas.height;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-    scale = Math.min(scaleX, scaleY);
-
-    canvas.style.width = canvas.width * scale + "px";
-    canvas.style.height = canvas.height * scale + "px";
+    scale = 1; // больше не нужен масштаб, работаем напрямую в размере экрана
 }
 
 window.addEventListener("resize", resize);

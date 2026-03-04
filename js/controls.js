@@ -9,9 +9,9 @@ window.input = {
 function getGameCoords(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
     return {
-        x: (clientX - rect.left) / scale,
-        y: (clientY - rect.top) / scale
-    };
+    x: clientX - rect.left,
+    y: clientY - rect.top
+};
 }
 
 // мобильное управление

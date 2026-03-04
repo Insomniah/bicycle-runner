@@ -36,30 +36,43 @@ if (input.isMobile) {
     canvas.addEventListener("touchend", resetInput);
 
     function handleTouch(e) {
+        e.preventDefault(); // убираем скролл страницы
 
-        resetInput();
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
 
-        for (let touch of e.touches) {
+        if (!touch) return;
 
-            const pos = getGameCoords(touch.clientX, touch.clientY);
+        // переводим координаты в игровую систему
+        const x = (touch.clientX - rect.left) / scale;
+        const y = (touch.clientY - rect.top) / scale;
 
-            // Левая половина — движение
-            if (pos.x < canvas.width / 2) {
+        const screenWidth = canvas.width;
 
-                const stickCenterX = canvas.width * 0.2;
-                const stickCenterY = canvas.height * 0.75;
-
-                if (pos.x < stickCenterX - 30) input.left = true;
-                if (pos.x > stickCenterX + 30) input.right = true;
-                if (pos.y > stickCenterY + 30) input.down = true;
-
+        // левая половина — движение
+        if (x < screenWidth / 2) {
+            if (x < screenWidth / 4) {
+                player.moveLeft = true;
+                player.moveRight = false;
             } else {
-                // Правая половина — прыжок
-                input.jump = true;
+                player.moveRight = true;
+                player.moveLeft = false;
             }
+        } 
+        // правая половина — прыжок
+        else {
+            player.jump();
         }
     }
 }
+
+canvas.addEventListener("touchstart", handleTouch, { passive: false });
+canvas.addEventListener("touchmove", handleTouch, { passive: false });
+
+canvas.addEventListener("touchend", () => {
+    player.moveLeft = false;
+    player.moveRight = false;
+});
 
 // =======================
 // ПК УПРАВЛЕНИЕ
@@ -92,4 +105,25 @@ function resetInput() {
     input.right = false;
     input.down = false;
     input.jump = false;
+}
+
+function drawUI() {
+
+    if (!input.isMobile) return;
+
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+
+    // Левая зона движения
+    ctx.fillStyle = "black";
+    ctx.beginPath();
+    ctx.arc(150, canvas.height - 150, 100, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Правая зона прыжка
+    ctx.beginPath();
+    ctx.arc(canvas.width - 150, canvas.height - 150, 80, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
 }

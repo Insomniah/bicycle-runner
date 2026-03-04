@@ -19,3 +19,8 @@ function resize() {
 
 window.addEventListener("resize", resize);
 resize();
+
+let camera = {
+    x: 0,
+    y: 0
+};

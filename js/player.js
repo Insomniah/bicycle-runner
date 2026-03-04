@@ -28,6 +28,10 @@ function updatePlayer() {
         player.velocityY = 0;
         player.onGround = true;
     }
+
+    // Камера следует за игроком
+    camera.x = player.x - canvas.width / 2 + player.width / 2;
+    if (camera.x < 0) camera.x = 0;
 }
 
 function drawPlayer() {

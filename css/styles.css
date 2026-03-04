@@ -1,11 +1,12 @@
 html, body {
     margin: 0;
     padding: 0;
-    background: #111;
     overflow: hidden;
+    background: #1a1a1a;
+    touch-action: none;
 }
 
 canvas {
     display: block;
-    background: #222;
+    background: linear-gradient(#5c94fc, #c0e8ff);
 }

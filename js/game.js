@@ -1,32 +1,21 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Всегда горизонтальный режим
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = 1280;
+canvas.height = 720;
 
-let lastTime = 0;
+let scale = 1;
 
-function gameLoop(timestamp) {
-    const deltaTime = timestamp - lastTime;
-    lastTime = timestamp;
+function resize() {
 
-    update(deltaTime);
-    draw();
+    const scaleX = window.innerWidth / canvas.width;
+    const scaleY = window.innerHeight / canvas.height;
 
-    requestAnimationFrame(gameLoop);
+    scale = Math.min(scaleX, scaleY);
+
+    canvas.style.width = canvas.width * scale + "px";
+    canvas.style.height = canvas.height * scale + "px";
 }
 
-function update(deltaTime) {
-    player.update(deltaTime);
-    camera.update();
-}
-
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    world.draw(ctx, camera);
-    player.draw(ctx, camera);
-}
-
-requestAnimationFrame(gameLoop);
+window.addEventListener("resize", resize);
+resize();

@@ -1,23 +1,11 @@
-body {
+html, body {
     margin: 0;
+    padding: 0;
     overflow: hidden;
-    background: #87CEEB;
-    font-family: monospace;
-    text-align: center;
-}
-
-#menu {
-    position: absolute;
-    width: 100%;
-    top: 40%;
-}
-
-button {
-    font-size: 20px;
-    padding: 10px 20px;
+    background: black;
 }
 
 canvas {
-    display: none;
-    background: #5ecb5e;
+    display: block;
+    background: #87CEEB; /* небо */
 }

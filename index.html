@@ -4,22 +4,20 @@
     <meta charset="UTF-8">
     <title>Bicycle Runner</title>
 
-    <!-- ОБЯЗАТЕЛЬНО для мобильных -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Мобильный viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-    <!-- Главное меню -->
-    <div id="menu">
-        <h1>Bicycle Runner</h1>
-        <button id="startButton">Start Game</button>
-    </div>
+<canvas id="gameCanvas"></canvas>
 
-    <!-- Canvas для игры -->
-    <canvas id="gameCanvas"></canvas>
+<script src="js/controls.js"></script>
+<script src="js/player.js"></script>
+<script src="js/world.js"></script>
+<script src="js/camera.js"></script>
+<script src="js/game.js"></script>
 
-    <script src="js/game.js"></script>
 </body>
 </html>

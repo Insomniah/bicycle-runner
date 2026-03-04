@@ -1,3 +1,6 @@
+window.groundLevel = () => canvas.height - 120;
+window.gameOver = false;
+
 window.player = {
     x: 200,
     y: 500,
@@ -25,8 +28,8 @@ function updatePlayer() {
     player.velocityY += player.gravity;
     player.y += player.velocityY;
 
-    if (player.y + player.height >= canvas.height) {
-        player.y = canvas.height - player.height;
+    if (player.y + player.height >= groundLevel()) {
+        player.y = groundLevel() - player.height;
         player.velocityY = 0;
         player.onGround = true;
     }
@@ -34,6 +37,11 @@ function updatePlayer() {
     // камера следует за игроком
     camera.x = player.x - canvas.width / 2 + player.width / 2;
     if (camera.x < 0) camera.x = 0;
+
+    // если упал слишком глубоко — конец игры
+    if (player.y > canvas.height + 300) {
+        gameOver = true;
+    }
 }
 
 function drawPlayer() {

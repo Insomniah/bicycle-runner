@@ -1,126 +1,90 @@
-let input = {
+window.input = {
     left: false,
     right: false,
     down: false,
     jump: false,
-    isMobile: false
+    isMobile: 'ontouchstart' in window
 };
 
-// Определяем мобильное устройство
-if ('ontouchstart' in window) {
-    input.isMobile = true;
-}
-
-// =======================
-// Перевод координат в игровые
-// =======================
-
 function getGameCoords(clientX, clientY) {
-
     const rect = canvas.getBoundingClientRect();
-
-    const x = (clientX - rect.left) / scale;
-    const y = (clientY - rect.top) / scale;
-
-    return { x, y };
+    return {
+        x: (clientX - rect.left) / scale,
+        y: (clientY - rect.top) / scale
+    };
 }
 
-// =======================
-// МОБИЛЬНОЕ УПРАВЛЕНИЕ
-// =======================
-
+// мобильное управление
 if (input.isMobile) {
+    canvas.addEventListener("touchstart", handleTouch, { passive: false });
+    canvas.addEventListener("touchmove", handleTouch, { passive: false });
+    canvas.addEventListener("touchend", () => {
+        player.moveLeft = false;
+        player.moveRight = false;
+    });
+}
 
-    canvas.addEventListener("touchstart", handleTouch);
-    canvas.addEventListener("touchmove", handleTouch);
-    canvas.addEventListener("touchend", resetInput);
+function handleTouch(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    if (!touch) return;
 
-    function handleTouch(e) {
-        e.preventDefault(); // убираем скролл страницы
+    const pos = getGameCoords(touch.clientX, touch.clientY);
 
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0];
+    // левая зона движения
+    const moveZoneX = 150;
+    const moveZoneY = canvas.height - 150;
 
-        if (!touch) return;
+    const dxMove = pos.x - moveZoneX;
+    const dyMove = pos.y - moveZoneY;
+    const distanceMove = Math.sqrt(dxMove * dxMove + dyMove * dyMove);
 
-        // переводим координаты в игровую систему
-        const x = (touch.clientX - rect.left) / scale;
-        const y = (touch.clientY - rect.top) / scale;
-
-        const screenWidth = canvas.width;
-
-        // левая половина — движение
-        if (x < screenWidth / 2) {
-            if (x < screenWidth / 4) {
-                player.moveLeft = true;
-                player.moveRight = false;
-            } else {
-                player.moveRight = true;
-                player.moveLeft = false;
-            }
-        } 
-        // правая половина — прыжок
-        else {
-            player.jump();
+    if (distanceMove < 100) {
+        if (dxMove < -20) {
+            player.moveLeft = true;
+            player.moveRight = false;
+        } else if (dxMove > 20) {
+            player.moveRight = true;
+            player.moveLeft = false;
         }
     }
+
+    // правая зона прыжка
+    const jumpZoneX = canvas.width - 150;
+    const jumpZoneY = canvas.height - 150;
+    const dxJump = pos.x - jumpZoneX;
+    const dyJump = pos.y - jumpZoneY;
+    const distanceJump = Math.sqrt(dxJump * dxJump + dyJump * dyJump);
+
+    if (distanceJump < 80) player.jump();
 }
 
-canvas.addEventListener("touchstart", handleTouch, { passive: false });
-canvas.addEventListener("touchmove", handleTouch, { passive: false });
-
-canvas.addEventListener("touchend", () => {
-    player.moveLeft = false;
-    player.moveRight = false;
-});
-
-// =======================
-// ПК УПРАВЛЕНИЕ
-// =======================
-
+// ПК управление
 window.addEventListener("keydown", (e) => {
-
-    if (e.key === "ArrowLeft" || e.key === "a") input.left = true;
-    if (e.key === "ArrowRight" || e.key === "d") input.right = true;
-    if (e.key === "ArrowDown" || e.key === "s") input.down = true;
-    if (e.key === " " ) input.jump = true;
-
+    if (e.key === "ArrowLeft" || e.key === "a") player.moveLeft = true;
+    if (e.key === "ArrowRight" || e.key === "d") player.moveRight = true;
+    if (e.key === " " ) player.jump();
 });
 
 window.addEventListener("keyup", (e) => {
-
-    if (e.key === "ArrowLeft" || e.key === "a") input.left = false;
-    if (e.key === "ArrowRight" || e.key === "d") input.right = false;
-    if (e.key === "ArrowDown" || e.key === "s") input.down = false;
-    if (e.key === " " ) input.jump = false;
-
+    if (e.key === "ArrowLeft" || e.key === "a") player.moveLeft = false;
+    if (e.key === "ArrowRight" || e.key === "d") player.moveRight = false;
 });
 
-// =======================
-// Сброс
-// =======================
-
-function resetInput() {
-    input.left = false;
-    input.right = false;
-    input.down = false;
-    input.jump = false;
-}
-
+// отрисовка зон управления
 function drawUI() {
-
     if (!input.isMobile) return;
 
     ctx.save();
     ctx.globalAlpha = 0.3;
-
-    // Левая зона движения
     ctx.fillStyle = "black";
+
+    // левая зона движения
     ctx.beginPath();
     ctx.arc(150, canvas.height - 150, 100, 0, Math.PI * 2);
     ctx.fill();
 
-    // Правая зона прыжка
+    // правая зона прыжка
     ctx.beginPath();
     ctx.arc(canvas.width - 150, canvas.height - 150, 80, 0, Math.PI * 2);
     ctx.fill();

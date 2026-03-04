@@ -1,12 +1,14 @@
 html, body {
     margin: 0;
     padding: 0;
-    overflow: hidden;
-    background: #1a1a1a;
-    touch-action: none;
+    overflow: hidden; /* убираем скролл */
+    height: 100%;
+    background: #111;
+    touch-action: none; /* запрет скролла на мобиле */
 }
 
 canvas {
     display: block;
-    background: linear-gradient(#5c94fc, #c0e8ff);
+    background: linear-gradient(#5c94fc, #c0e8ff); /* простой фон уровня */
+    image-rendering: pixelated;
 }

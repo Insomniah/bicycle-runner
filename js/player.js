@@ -1,4 +1,4 @@
-const player = {
+window.player = {
     x: 200,
     y: 500,
     width: 50,
@@ -7,18 +7,20 @@ const player = {
     velocityY: 0,
     gravity: 0.8,
     jumpPower: -15,
-    onGround: false
+    onGround: false,
+    moveLeft: false,
+    moveRight: false,
+    jump: function() {
+        if (this.onGround) {
+            this.velocityY = this.jumpPower;
+            this.onGround = false;
+        }
+    }
 };
 
 function updatePlayer() {
-
-    if (input.left) player.x -= player.speed;
-    if (input.right) player.x += player.speed;
-
-    if (input.jump && player.onGround) {
-        player.velocityY = player.jumpPower;
-        player.onGround = false;
-    }
+    if (player.moveLeft) player.x -= player.speed;
+    if (player.moveRight) player.x += player.speed;
 
     player.velocityY += player.gravity;
     player.y += player.velocityY;
@@ -29,7 +31,7 @@ function updatePlayer() {
         player.onGround = true;
     }
 
-    // Камера следует за игроком
+    // камера следует за игроком
     camera.x = player.x - canvas.width / 2 + player.width / 2;
     if (camera.x < 0) camera.x = 0;
 }

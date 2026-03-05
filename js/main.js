@@ -31,6 +31,7 @@ function gameLoop() {
         ctx.save();
         ctx.translate(-camera.x, 0);
 
+        camera.update();
         updatePlayer();
         drawPlayer();
 

@@ -7,9 +7,6 @@ window.ctx = canvas.getContext("2d");
 // глобальный масштаб
 window.scale = 1;
 
-// камера
-window.camera = { x: 0, y: 0 };
-
 // адаптация под экран
 function resize() {
     const height = window.visualViewport

@@ -16,10 +16,6 @@ function drawBackground() {
         const x = (i * 400 - camera.x * 0.4) % (canvas.width + 400);
         ctx.fillRect(x, 200, 150, 50);
     }
-
-    // земля
-    ctx.fillStyle = "#228B22";
-    ctx.fillRect(0, groundLevel(), canvas.width, canvas.height - groundLevel());
 }
 
 function gameLoop() {
@@ -32,6 +28,8 @@ function gameLoop() {
         ctx.translate(-camera.x, 0);
 
         camera.update();
+        world.draw(ctx, camera);   // ← вот это рисует землю
+
         updatePlayer();
         drawPlayer();
 

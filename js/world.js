@@ -2,11 +2,25 @@ const world = {
     width: 10000,
 
     groundHeight(x) {
-        // Простой рельеф
-        const base = canvas.height - 100;
-        const hill = Math.sin(x * 0.002) * 50;
-        return base - hill;
-    },
+
+    const isMobile = 'ontouchstart' in window;
+    const isLandscape = canvas.width > canvas.height;
+
+    let groundOffset;
+
+    // мобильный горизонтальный режим
+    if (isMobile && isLandscape) {
+        groundOffset = 60;
+    } else {
+        groundOffset = 100;
+    }
+
+    const base = canvas.height - groundOffset;
+
+    const hill = Math.sin(x * 0.002) * 50;
+
+    return base - hill;
+},
 
     draw(ctx, camera) {
 
@@ -21,3 +35,4 @@ const world = {
         }
     }
 };
+

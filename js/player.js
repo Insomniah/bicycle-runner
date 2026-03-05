@@ -1,4 +1,4 @@
-window.groundLevel = () => canvas.height - 120;
+window.groundLevel = (x) => world.groundHeight(x);
 window.gameOver = false;
 
 window.player = {
@@ -44,26 +44,26 @@ function updatePlayer() {
 
 
     // ===== ГРАВИТАЦИЯ =====
-    player.velocityY += player.gravity;
-    player.y += player.velocityY;
+player.velocityY += player.gravity;
+player.y += player.velocityY;
 
 
-    // ===== СТОЛКНОВЕНИЕ С ЗЕМЛЁЙ =====
-    const ground = groundLevel();
+// ===== СТОЛКНОВЕНИЕ С ЗЕМЛЁЙ =====
+const ground = groundLevel(player.x);
 
-    if (player.y + player.height >= ground) {
-        player.y = ground - player.height;
-        player.velocityY = 0;
-        player.onGround = true;
-    } else {
-        player.onGround = false;
-    }
+if (player.y + player.height >= ground) {
+    player.y = ground - player.height;
+    player.velocityY = 0;
+    player.onGround = true;
+} else {
+    player.onGround = false;
+}
 
 
-    // ===== ПАДЕНИЕ В БЕЗДНУ =====
-    if (player.y > canvas.height + 300) {
-        gameOver = true;
-    }
+// ===== ПАДЕНИЕ В БЕЗДНУ =====
+if (player.y > canvas.height + 300) {
+    gameOver = true;
+}
 
 
     // ===== STAGE COMPLETE =====

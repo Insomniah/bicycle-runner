@@ -1,16 +1,21 @@
-html, body {
+/* Сброс отступов и запрет прокрутки */
+body, html {
     margin: 0;
     padding: 0;
-    overflow: hidden; /* убираем скролл */
+    width: 100%;
     height: 100%;
-    background: #111;
-    touch-action: none; /* запрет скролла на мобиле */
+    overflow: hidden; /* Запрещаем скролл всей страницы */
+    background-color: #000;
+    /* Запрещаем выделение текста и системные жесты */
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none; /* Отключаем стандартные жесты браузера (зум, свайп назад) */
 }
 
-canvas {
+#gameCanvas {
+    display: block;
     width: 100vw;
     height: 100vh;
-    display: block;
-    background: linear-gradient(#5c94fc, #c0e8ff); /* простой фон уровня */
-    image-rendering: pixelated;
+    /* Если используем visualViewport, лучше задавать высоту через JS, 
+       но это база для предотвращения появления полос прокрутки */
 }

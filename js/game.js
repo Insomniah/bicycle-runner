@@ -9,18 +9,17 @@ window.scale = 1;
 
 // адаптация под экран
 function resize() {
-    const height = window.visualViewport
-        ? window.visualViewport.height
-        : window.innerHeight;
+    // Используем именно visualViewport, если он доступен
+    const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
 
-    const width = window.visualViewport
-        ? window.visualViewport.width
-        : window.innerWidth;
+    canvas.width = vw;
+    canvas.height = vh;
 
-    canvas.height = window.innerHeight;
-    canvas.width = window.innerWidth;
-
-    scale = 1;
+    // Важно: пересчитываем масштаб или позиции UI, если они зависят от высоты
+    if (window.world && typeof world.generateClouds === 'function') {
+        // world.generateClouds(); // Опционально: перегенерировать облака под новый размер
+    }
 }
 
 window.addEventListener("resize", resize);

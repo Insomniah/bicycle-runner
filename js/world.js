@@ -12,7 +12,8 @@ const world = {
 
     drawSky(ctx, camera) {
 
-        const ground = canvas.height - 120;
+        const skyTop = canvas.height * 0.15;
+        const skyMid = canvas.height * 0.30;
 
         // дальние облака
         ctx.fillStyle = "#a0c8ff";
@@ -25,7 +26,7 @@ const world = {
                     600) %
                 (canvas.width + 600);
 
-            ctx.fillRect(x, ground - 320, 200, 60);
+            ctx.fillRect(x, skyTop, 200, 60);
         }
 
         // ближние облака
@@ -39,7 +40,7 @@ const world = {
                     400) %
                 (canvas.width + 400);
 
-            ctx.fillRect(x, ground - 240, 150, 50);
+            ctx.fillRect(x, skyMid, 150, 50);
         }
     },
 

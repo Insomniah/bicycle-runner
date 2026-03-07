@@ -17,8 +17,8 @@ function resize() {
         ? window.visualViewport.width
         : window.innerWidth;
 
-    canvas.width = width;
-    canvas.height = height;
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
 
     scale = 1;
 }

@@ -82,9 +82,18 @@ if (player.y > canvas.height + 300) {
     if (camera.x + canvas.width > levelWidth) {
         camera.x = levelWidth - canvas.width;
     }
+
+    if (player.x > world.width) {
+        gameOver = "complete";
+    }
 }
 
 function drawPlayer() {
     ctx.fillStyle = "lime";
-    ctx.fillRect(player.x, player.y, player.width, player.height);
+    ctx.fillRect(
+        player.x - camera.x,
+        player.y,
+        player.width,
+        player.height
+    );
 }

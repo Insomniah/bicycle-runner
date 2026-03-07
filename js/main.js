@@ -1,13 +1,15 @@
 function drawBackground() {
-    // базовое небо
+
     ctx.fillStyle = "#5c94fc";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // облака и земля теперь рисуются миром
-    world.drawSky(ctx, camera);
+    sky.draw(ctx, camera);
+    mountains.draw(ctx, camera);
+
 }
 
-world.generateClouds();
+sky.generate();
+mountains.generate();
 
 function gameLoop() {
 

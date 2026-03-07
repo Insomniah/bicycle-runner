@@ -5,30 +5,34 @@ const world = {
 
     generateClouds() {
 
-        this.clouds = [];
+    this.clouds = [];
 
-        const spacing = 400;
-        const count = Math.ceil(this.width / spacing);
+    const spacing = 200;
+    const count = Math.ceil(this.width / spacing);
 
-        for (let i = 0; i < count; i++) {
+    const minY = 40;
+    const maxY = canvas.height * 0.25;
 
-            const size = 60 + Math.random() * 180; // минимальный и максимальный размер облаков
+    for (let i = 0; i < count; i++) {
 
-            this.clouds.push({
+        const size = 60 + Math.random() * 80;
 
-                x: i * spacing + Math.random() * 200,
-                y: 60 + Math.random() * 80,
+        this.clouds.push({
 
-                w: size,
-                h: size * 0.4,
+            x: i * spacing + Math.random() * 200,
 
-                parallax: 0.2
+            y: minY + Math.random() * (maxY - minY),
 
-            });
+            w: size,
+            h: size * 0.4,
 
-        }
+            parallax: 0.2
 
-    },
+        });
+
+    }
+
+},
 
     groundHeight(x) {
 

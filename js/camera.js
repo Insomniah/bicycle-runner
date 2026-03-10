@@ -5,8 +5,8 @@ window.camera = {
 
     update: function () {
 
-        // горизонтальное следование
-        this.x = player.x - canvas.width / 2;
+        // горизонтальное следование, игрок немного левее центра, чтобы видеть уровень впереди
+        this.x = player.x - canvas.width * 0.35;
 
         if (this.x < 0) this.x = 0;
 

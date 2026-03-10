@@ -9,6 +9,7 @@ window.scale = 1;
 
 // адаптация под экран
 function resize() {
+
     // Используем именно visualViewport, если он доступен
     const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
     const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
@@ -17,10 +18,16 @@ function resize() {
     canvas.height = vh;
 
     // Важно: пересчитываем масштаб или позиции UI, если они зависят от высоты
-    if (window.world && typeof world.generateClouds === 'function') {
-        // world.generateClouds(); // Опционально: перегенерировать облака под новый размер
+    if (window.sky && sky.generate) {
+        sky.generate();
     }
+
+    if (window.mountains && mountains.generate) {
+        mountains.generate();
+    }
+
 }
+
 
 window.addEventListener("resize", resize);
 

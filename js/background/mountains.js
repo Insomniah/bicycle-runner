@@ -18,7 +18,7 @@ const mountains = {
 
                 peaks.push({
                     x: p * 120 + Math.random() * 60,
-                    h: 80 + Math.random() * 140
+                    h: 120 + Math.random() * 120
                 });
 
             }

@@ -5,7 +5,7 @@ const world = {
     getGroundBase() {
 
         if (canvas.height < 500) {
-            return canvas.height - 60;
+            return canvas.height * 0.78;
         }
 
         return canvas.height - 120;

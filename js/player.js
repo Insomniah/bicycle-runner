@@ -38,8 +38,8 @@ function updatePlayer() {
         player.x = 0;
     }
 
-    if (player.x + player.width > levelWidth) {
-        player.x = levelWidth - player.width;
+    if (player.x + player.width > world.width) {
+        player.x = world.width - player.width;
     }
 
 
@@ -67,7 +67,7 @@ if (player.y > canvas.height + 300) {
 
 
     // ===== STAGE COMPLETE =====
-    if (player.x + player.width >= levelWidth - 5) {
+    if (player.x + player.width >= world.width - 5) {
         gameOver = "complete";
     }
 
@@ -79,8 +79,8 @@ if (player.y > canvas.height + 300) {
         camera.x = 0;
     }
 
-    if (camera.x + canvas.width > levelWidth) {
-        camera.x = levelWidth - canvas.width;
+    if (camera.x + canvas.width > world.width) {
+        camera.x = world.width - canvas.width;
     }
 
     if (player.x > world.width) {

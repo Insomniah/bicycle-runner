@@ -18,7 +18,7 @@ const mountains = {
 
                 peaks.push({
                     x: p * 120 + Math.random() * 60,
-                    h: 120 + Math.random() * 120
+                    h: canvas.height * (0.40 + Math.random() * 0.12)
                 });
 
             }
@@ -38,7 +38,7 @@ const mountains = {
     draw(ctx, camera) {
 
         const parallax = 0.05;
-        const baseY = world.getGroundBase();
+        const baseY = world.getGroundBase() + canvas.height * 0.2; // уровень гор относительно земли
 
         ctx.fillStyle = "#6c8ed6";
 

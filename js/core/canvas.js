@@ -1,5 +1,29 @@
 const canvas = document.getElementById("gameCanvas");
+
+if (!canvas) {
+    throw new Error("Canvas element #gameCanvas not found");
+}
+
 const ctx = canvas.getContext("2d");
+
+
+// ===============================
+// Масштаб сцены
+// ===============================
+
+// Эталонная высота сцены
+// От неё масштабируются все объекты
+function getSceneScale() {
+
+    const baseHeight = 800;
+    return canvas.height / baseHeight;
+
+}
+
+
+// ===============================
+// Адаптация canvas под экран
+// ===============================
 
 function resize() {
 
@@ -15,6 +39,7 @@ resize();
 
 window.addEventListener("resize", resize);
 
-if (!canvas) {
-    throw new Error("Canvas element #gameCanvas not found");
-}
+// фиксим поворот телефона
+window.addEventListener("orientationchange", () => {
+    setTimeout(resize, 200);
+});

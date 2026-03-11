@@ -1,3 +1,6 @@
+const rockTest = new Image();
+rockTest.src = "assets/rocks/middle_lane_rock1_1.png";
+
 const mountains = {
 
     list: [],
@@ -39,6 +42,12 @@ const mountains = {
 
         const parallax = 0.05;
         const baseY = world.getGroundBase() + canvas.height * 0.2; // уровень гор относительно земли
+
+        ctx.drawImage(
+            rockTest,
+            200,
+            world.getGroundBase() - rockTest.height
+        );
 
         ctx.fillStyle = "#6c8ed6";
 

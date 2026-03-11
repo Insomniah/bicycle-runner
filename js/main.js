@@ -9,6 +9,7 @@ function drawBackground() {
 }
 
 sky.generate();
+mountains.load();
 mountains.generate();
 
 function gameLoop() {

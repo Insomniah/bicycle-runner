@@ -1,69 +1,84 @@
+// =====================================
+// СКАЛЫ (спрайтовый фон)
+// =====================================
+
 const mountains = {
 
+    images: [],
     list: [],
 
-    generate() {
 
-        this.list = [];
+    // загрузка текстур
+    load() {
 
-        const spacing = 600; // расстояние между горами
-        const count = Math.ceil(world.width / spacing);
+        const files = [
 
-        for (let i = 0; i < count; i++) {
+            "assets/rocks/middle_lane_rock1_1.png",
+            "assets/rocks/middle_lane_rock1_2.png",
+            "assets/rocks/middle_lane_rock1_3.png",
+        ];
 
-            const peaks = [];
-            const peakCount = 3 + Math.floor(Math.random() * 2);
+        for (const src of files) {
 
-            for (let p = 0; p < peakCount; p++) {
+            const img = new Image();
+            img.src = src;
 
-                peaks.push({
-                    x: p * 120 + Math.random() * 60,
-                    h: canvas.height * (0.35 + Math.random() * 0.18) // Высота гор регулируется здесь
-                });
-
-            }
-
-            this.list.push({
-
-                x: i * spacing + Math.random() * 200,
-                width: peakCount * 120,
-                peaks: peaks
-
-            });
+            this.images.push(img);
 
         }
 
     },
 
+
+    // генерация скал по миру
+    generate() {
+
+        this.list = [];
+
+        let x = 0;
+
+        const minGap = 180;
+        const maxGap = 550;
+
+        while (x < world.width) {
+
+            const img = this.images[
+                Math.floor(Math.random() * this.images.length)
+            ];
+
+            this.list.push({
+                x: x,
+                img: img
+            });
+
+            const gap = minGap + Math.random() * (maxGap - minGap);
+
+            x += gap;
+
+        }
+
+    },
+
+
     draw(ctx, camera) {
 
-        const parallax = 0.05;
-        const baseY = world.getGroundBase() + canvas.height * 0.2; // уровень гор относительно земли
+        const parallax = 0.15;
 
-        ctx.fillStyle = "#6c8ed6";
+        for (const r of this.list) {
 
-        for (const m of this.list) {
+            if (!r.img.complete) continue;
 
-            const x = m.x - camera.x * parallax;
+            const screenX = r.x - camera.x * parallax;
 
-            if (x < -600 || x > canvas.width + 600) continue;
+            if (screenX < -500 || screenX > canvas.width + 500) continue;
 
-            ctx.beginPath();
-            ctx.moveTo(x, baseY);
+            const y = world.getGroundBase() - r.img.height + 40;
 
-            for (const peak of m.peaks) {
-
-                ctx.lineTo(
-                    x + peak.x,
-                    baseY - peak.h
-                );
-
-            }
-
-            ctx.lineTo(x + m.width, baseY);
-
-            ctx.closePath();
-            ctx.fill();
+            ctx.drawImage(
+                r.img,
+                screenX,
+                y
+            );
 
         }
 

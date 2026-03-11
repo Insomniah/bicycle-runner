@@ -29,7 +29,7 @@ const world = {
     draw(ctx, camera) {
 
         // Рисуем землю (зелёную поверхность)
-        ctx.fillStyle = "#15803d";
+        ctx.fillStyle = "rgba(0, 190, 0, 0.8)";
 
         ctx.beginPath();
 

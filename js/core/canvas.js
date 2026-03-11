@@ -22,7 +22,7 @@ function getSceneScale() {
 
 
 // ===============================
-// Адаптация canvas под экран
+// Пересчёт размеров canvas
 // ===============================
 
 function resize() {
@@ -35,11 +35,41 @@ function resize() {
 
 }
 
-resize();
 
-window.addEventListener("resize", resize);
+// ===============================
+// Полный перерасчёт сцены
+// ===============================
 
-// фиксим поворот телефона
+function recalcScene() {
+
+    resize();
+
+    // Перегенерируем объекты,
+    // которые зависят от размера экрана
+    if (typeof sky !== "undefined" && sky.generate) {
+        sky.generate();
+    }
+
+    if (typeof mountains !== "undefined" && mountains.generate) {
+        mountains.generate();
+    }
+
+}
+
+
+// первый запуск
+recalcScene();
+
+
+// ===============================
+// События изменения размера
+// ===============================
+
+window.addEventListener("resize", recalcScene);
+
+
+// мобильные браузеры иногда обновляют viewport
+// только спустя время после поворота
 window.addEventListener("orientationchange", () => {
-    setTimeout(resize, 200);
+    setTimeout(recalcScene, 200);
 });

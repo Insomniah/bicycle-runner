@@ -4,39 +4,49 @@ const world = {
 
     getGroundBase() {
 
-        if (canvas.height < 500) {
-            return canvas.height * 0.78;
-        }
-
-        return canvas.height - 120;
+        // Земля примерно на 66% высоты экрана
+        // Это работает одинаково хорошо на телефонах и на десктопе
+        return canvas.height * 0.66;
 
     },
 
     groundHeight(x) {
 
         const base = this.getGroundBase();
+
+        // Небольшие холмы через синус
         const hill = Math.sin(x * 0.002) * 50;
 
+        // Земля поднимается и опускается относительно базовой линии
         return base - hill;
 
     },
 
     draw(ctx, camera) {
 
-        ctx.fillStyle = "#228B22";
+        // Рисуем землю (зелёную поверхность)
+        ctx.fillStyle = "#15803d";
 
-        for (let x = camera.x; x < camera.x + canvas.width; x += 10) {
+        ctx.beginPath();
 
-            const y = this.groundHeight(x);
+        // начинаем слева за экраном
+        ctx.moveTo(-100, canvas.height);
 
-            ctx.fillRect(
-                x - camera.x,
-                y,
-                10,
-                canvas.height - y
-            );
+        // идём по всей ширине экрана
+        for (let x = -100; x < canvas.width + 100; x += 20) {
+
+            const worldX = x + camera.x;
+            const y = this.groundHeight(worldX);
+
+            ctx.lineTo(x, y);
 
         }
+
+        // закрываем землю вниз
+        ctx.lineTo(canvas.width + 100, canvas.height);
+        ctx.closePath();
+
+        ctx.fill();
 
     }
 

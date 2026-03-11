@@ -6,7 +6,7 @@ const mountains = {
 
         this.list = [];
 
-        const spacing = 400;
+        const spacing = 600; // расстояние между горами
         const count = Math.ceil(world.width / spacing);
 
         for (let i = 0; i < count; i++) {
@@ -18,7 +18,7 @@ const mountains = {
 
                 peaks.push({
                     x: p * 120 + Math.random() * 60,
-                    h: canvas.height * (0.40 + Math.random() * 0.12)
+                    h: canvas.height * (0.35 + Math.random() * 0.18) // Высота гор регулируется здесь
                 });
 
             }

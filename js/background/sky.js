@@ -6,7 +6,7 @@ const sky = {
 
         this.clouds = [];
 
-        const spacing = 200;
+        const spacing = 200; // Расстояние между облаками
         const count = Math.ceil(world.width / spacing);
 
         const minY = 40;
@@ -14,7 +14,7 @@ const sky = {
 
         for (let i = 0; i < count; i++) {
 
-            const size = 60 + Math.random() * 80;
+            const size = 60 + Math.random() * 80; // Базовый размер облаков
 
             this.clouds.push({
 

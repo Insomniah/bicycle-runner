@@ -72,7 +72,11 @@ const mountains = {
 
             if (screenX < -500 || screenX > canvas.width + 500) continue;
 
-            const y = world.getGroundBase() - r.img.height + 40;
+            // получаем высоту земли в этой точке
+            const groundY = world.groundHeight(r.x);
+
+            // ставим скалу на землю
+            const y = groundY - r.img.height + 42;
 
             ctx.drawImage(
                 r.img,

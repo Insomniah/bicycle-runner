@@ -19,7 +19,7 @@ const world = {
         const scale = getSceneScale();
 
         // Небольшие холмы через синус
-        const hill = Math.sin(x * 0.002) * 50 * scale;
+        const hill = Math.sin(x * 0.003) * 50 * scale;
 
         // Земля поднимается и опускается относительно базовой линии
         return base - hill;

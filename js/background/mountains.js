@@ -1,87 +1,85 @@
-// =====================================
-// СКАЛЫ (спрайтовый фон)
-// =====================================
-
 const mountains = {
 
-    images: [],
     list: [],
 
+    // параллакс слоя
+    parallax: 0.15,
 
-    // загрузка текстур
-    load() {
+    // типы скал
+    rockTypes: [
 
-        const files = [
+        { src: "assets/rocks/middle_lane_rock1_1.png", sink: 32 },
+        { src: "assets/rocks/middle_lane_rock1_2.png", sink: 20 },
+        { src: "assets/rocks/middle_lane_rock1_3.png", sink: 12 }
 
-            "assets/rocks/middle_lane_rock1_1.png",
-            "assets/rocks/middle_lane_rock1_2.png",
-            "assets/rocks/middle_lane_rock1_3.png",
-        ];
+    ],
 
-        for (const src of files) {
+    images: [],
 
-            const img = new Image();
-            img.src = src;
-
-            this.images.push(img);
-
-        }
-
-    },
-
-
-    // генерация скал по миру
     generate() {
 
         this.list = [];
+        this.images = [];
 
-        let x = 0;
+        // загружаем картинки
+        for (const type of this.rockTypes) {
 
-        const minGap = 180;
-        const maxGap = 550;
+            const img = new Image();
+            img.src = type.src;
+
+            this.images.push({
+                img: img,
+                sink: type.sink
+            });
+
+        }
+
+        let x = 300;
 
         while (x < world.width) {
 
-            const img = this.images[
+            // выбираем случайный тип скалы
+            const type = this.images[
                 Math.floor(Math.random() * this.images.length)
             ];
 
             this.list.push({
                 x: x,
-                img: img
+                img: type.img,
+                sink: type.sink,
+                scale: 0.8 + Math.random() * 0.4
             });
 
-            const gap = minGap + Math.random() * (maxGap - minGap);
+            // расстояние до следующей скалы
+            const spacing = 250 + Math.random() * 100;
 
-            x += gap;
+            x += spacing;
 
         }
 
     },
 
-
     draw(ctx, camera) {
 
-        const parallax = 0.15;
+        const groundBase = world.getGroundBase();
 
         for (const r of this.list) {
 
-            if (!r.img.complete) continue;
+            const x = r.x - camera.x * this.parallax;
 
-            const screenX = r.x - camera.x * parallax;
+            // оптимизация: не рисуем вне экрана
+            if (x < -400 || x > canvas.width + 400) continue;
 
-            if (screenX < -500 || screenX > canvas.width + 500) continue;
-
-            // получаем высоту земли в этой точке
-            const groundY = world.groundHeight(r.x);
-
-            // ставим скалу на землю
-            const y = groundY - r.img.height + 42;
+            const w = r.img.width * r.scale;
+            const h = r.img.height * r.scale;
+            const y = groundBase - h + r.sink;
 
             ctx.drawImage(
                 r.img,
-                screenX,
-                y
+                x,
+                y,
+                w,
+                h
             );
 
         }

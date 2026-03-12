@@ -15,21 +15,15 @@ const world = {
 
     groundHeight(x) {
 
-        const base = this.getGroundBase();
-        const scale = getSceneScale();
-
-        // Небольшие холмы через синус
-        const hill = Math.sin(x * 0.003) * 50 * scale;
-
-        // Земля поднимается и опускается относительно базовой линии
-        return base - hill;
+        // временно ровная земля
+        return this.getGroundBase();
 
     },
 
     draw(ctx, camera) {
 
         // Рисуем землю (зелёную поверхность)
-        ctx.fillStyle = "rgba(0, 190, 0, 0.8)";
+        ctx.fillStyle = "rgb(0, 190, 0)";
 
         ctx.beginPath();
 

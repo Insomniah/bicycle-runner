@@ -2,13 +2,11 @@
 sky.generate();
 mountains.generate();
 
-
 // регистрируем слои
 
 addToLayer("background", skyBackground);
 addToLayer("background", sky);
 addToLayer("background", mountains);
-
 addToLayer("world", world);
 
 
@@ -23,6 +21,8 @@ function gameLoop() {
         camera.update();
 
         updatePlayer();
+
+        sky.update();
 
         drawLayers(ctx, camera);
 

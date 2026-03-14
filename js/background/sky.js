@@ -1,10 +1,9 @@
 const sky = {
     clouds: [],
-    windSpeed: 0.2, // скорость движения облаков (px за кадр)
+    windSpeed: 0.2, // положительное = вправо, отрицательное = влево
 
     generate() {
         this.clouds = [];
-
         const spacing = 200;
         const count = Math.ceil(world.width / spacing);
         const minY = 40;
@@ -13,7 +12,7 @@ const sky = {
         for (let i = 0; i < count; i++) {
             const size = 60 + Math.random() * 80;
             this.clouds.push({
-                x: i * spacing + Math.random() * 200,
+                x: i * spacing + Math.random() * 200, // координаты в мире
                 y: minY + Math.random() * (maxY - minY),
                 w: size,
                 h: size * 0.4,
@@ -23,12 +22,15 @@ const sky = {
     },
 
     update() {
+        // движение облаков
         for (const cloud of this.clouds) {
             cloud.x -= this.windSpeed;
 
-            // если облако ушло за правый край уровня, возвращаем в начало
-            if (cloud.x > world.width + 300) {
-                cloud.x = -cloud.w; 
+            // зацикливание по длине уровня
+            if (this.windSpeed > 0 && cloud.x > world.width + 300) {
+                cloud.x = -cloud.w;
+            } else if (this.windSpeed < 0 && cloud.x < -cloud.w) {
+                cloud.x = world.width + 300;
             }
         }
     },

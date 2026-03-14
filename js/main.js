@@ -1,21 +1,22 @@
-function drawBackground() {
-
-    ctx.fillStyle = "#5c94fc";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    sky.draw(ctx, camera);
-    mountains.draw(ctx, camera);
-
-}
-
+// генерируем фоновые объекты
 sky.generate();
 mountains.generate();
+
+
+// регистрируем слои
+
+addToLayer("background", skyBackground);
+addToLayer("background", sky);
+addToLayer("background", mountains);
+
+addToLayer("world", world);
+
+
+// основной игровой цикл
 
 function gameLoop() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    drawBackground();
 
     if (!gameOver) {
 
@@ -23,25 +24,38 @@ function gameLoop() {
 
         updatePlayer();
 
-        world.draw(ctx, camera);
+        drawLayers(ctx, camera);
 
+        // игрок
         drawPlayer();
 
+        // интерфейс
         drawUI();
 
         requestAnimationFrame(gameLoop);
 
-    } else if (gameOver === true) {
+    }
 
+    else if (gameOver === true) {
+
+        drawLayers(ctx, camera);
         drawGameOver("GAME OVER");
 
-    } else if (gameOver === "complete") {
-
-        drawGameOver("STAGE COMPLETE");
     }
+
+    else if (gameOver === "complete") {
+
+        drawLayers(ctx, camera);
+        drawGameOver("STAGE COMPLETE");
+
+    }
+
 }
 
 gameLoop();
+
+
+// экран окончания игры
 
 function drawGameOver(text) {
 
@@ -51,5 +65,7 @@ function drawGameOver(text) {
     ctx.fillStyle = "white";
     ctx.font = "48px Arial";
     ctx.textAlign = "center";
+
     ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
 }

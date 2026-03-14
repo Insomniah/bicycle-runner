@@ -9,6 +9,12 @@ addToLayer("background", sky);
 addToLayer("background", mountains);
 addToLayer("world", world);
 
+// добавляем платформы уровня
+
+for (const p of level1.platforms) {
+    addToLayer("world", p);
+}
+
 
 // основной игровой цикл
 

@@ -19,6 +19,32 @@ class Platform {
 
     }
 
+    checkCollision(player) {
+
+        const playerBottom = player.y + player.height;
+        const playerRight = player.x + player.width;
+        const playerLeft = player.x;
+
+        const platformTop = this.y;
+        const platformLeft = this.x;
+        const platformRight = this.x + this.width;
+
+        if (
+            player.vy >= 0 &&
+            playerBottom >= platformTop &&
+            playerBottom <= platformTop + 20 &&
+            playerRight > platformLeft &&
+            playerLeft < platformRight
+        ) {
+
+            player.y = platformTop - player.height;
+            player.vy = 0;
+            player.onGround = true;
+
+        }
+
+    }
+
 }
 
 window.Platform = Platform;

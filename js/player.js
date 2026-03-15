@@ -42,7 +42,7 @@ function updatePlayer() {
     // ===== СБРОС НА ГРУНТ =====
     player.onGround = false;
 
-    const ground = groundLevel(player.x);
+    const ground = world.groundHeight(player.x);
 
     if (player.y + player.height >= ground) {
         player.y = ground - player.height;

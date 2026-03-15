@@ -3,7 +3,7 @@ const world = {
     width: 10000,
     height: 2000,
 
-    groundY: 650,
+    groundY: 250,
 
     getGroundBase() {
         return this.groundY;

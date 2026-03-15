@@ -72,7 +72,7 @@ const mountains = {
 
             const w = r.img.width * r.scale;
             const h = r.img.height * r.scale;
-            const y = groundBase - h + r.sink;
+            const y = groundBase - h + r.sink - camera.y;
 
             ctx.drawImage(
                 r.img,

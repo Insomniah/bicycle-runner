@@ -1,12 +1,7 @@
-// ===============================
-// game.js – базовая версия с табличкой
-// ===============================
-
-window.levelWidth = 4000; // длина уровня
-
-// canvas и контекст
 window.canvas = document.getElementById("gameCanvas");
 window.ctx = canvas.getContext("2d");
+
+window.gameOver = false;
 
 // ===============================
 // Проверка ориентации для таблички

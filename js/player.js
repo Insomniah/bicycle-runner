@@ -5,7 +5,7 @@ window.gameOver = false;
 
 window.player = {
     x: 200,
-    y: 500,
+    y: world.getGroundBase() - 50,
     width: 50,
     height: 50,
     speed: 6,

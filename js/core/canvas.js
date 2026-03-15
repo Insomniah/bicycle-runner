@@ -53,6 +53,10 @@ function recalcScene() {
     if (typeof mountains !== "undefined" && mountains.generate) {
         mountains.generate();
     }
+    // игрок должен стоять на земле, даже если её уровень изменился
+    if (window.player) {
+    player.y = world.getGroundBase() - player.height;
+}
 
 }
 

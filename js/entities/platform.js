@@ -12,7 +12,7 @@ class Platform {
     draw(ctx, camera) {
 
         const x = this.x - camera.x;
-        const y = this.y;
+        const y = this.y - camera.y;
 
         ctx.fillStyle = "#6b4f2a";
         ctx.fillRect(x, y, this.width, this.height);

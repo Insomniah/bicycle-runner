@@ -40,7 +40,7 @@ const sky = {
         for (const cloud of this.clouds) {
             const x = cloud.x - camera.x * cloud.parallax;
             if (x < -300 || x > canvas.width + 300) continue;
-            const y = cloud.y;
+            const y = cloud.y - camera.y * cloud.parallax;
 
             ctx.fillRect(x, y, cloud.w, cloud.h);
             ctx.fillRect(x + cloud.w * 0.3, y - cloud.h * 0.3, cloud.w * 0.6, cloud.h);

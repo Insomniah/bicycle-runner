@@ -1,5 +1,3 @@
-// player.js
-
 window.groundLevel = (x) => world.getGroundBase();
 window.gameOver = false;
 

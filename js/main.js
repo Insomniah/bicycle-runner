@@ -24,10 +24,8 @@ function gameLoop() {
 
     if (!gameOver) {
 
-        camera.update();
-
         updatePlayer();
-
+        camera.update();
         sky.update();
 
         drawLayers(ctx, camera);

@@ -64,20 +64,6 @@ function updatePlayer() {
     if (player.x + player.width >= world.width - 5) {
         gameOver = "complete";
     }
-
-    // ===== КАМЕРА X =====
-    camera.x = player.x - canvas.width / 2 + player.width / 2;
-
-    if (camera.x < 0) camera.x = 0;
-
-    if (camera.x + canvas.width > world.width) {
-        camera.x = world.width - canvas.width;
-    }
-
-    // ===== КАМЕРА Y =====
-    const targetY = player.y - canvas.height / 2 + player.height / 2;
-
-    camera.y += (targetY - camera.y) * 0.12;
 }
 
 function drawPlayer() {

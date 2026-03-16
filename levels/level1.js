@@ -1,15 +1,38 @@
 const level1 = {
 
-    platforms: [
+    platformData: [
 
-        new Platform(600, world.getGroundBase() - 120, 200, 20),
-        new Platform(900, world.getGroundBase() - 160, 200, 20),
-        new Platform(1300, world.getGroundBase() - 100, 100, 20),
-        new Platform(1600, world.getGroundBase() - 130, 200, 20),
-        new Platform(1900, world.getGroundBase() - 160, 200, 20),
-        new Platform(2200, world.getGroundBase() - 200, 70, 20)
+        { x: 600, offset: 120, w: 200, h: 20 },
+        { x: 900, offset: 160, w: 200, h: 20 },
+        { x: 1300, offset: 100, w: 100, h: 20 },
+        { x: 1600, offset: 130, w: 200, h: 20 },
+        { x: 1900, offset: 160, w: 200, h: 20 },
+        { x: 2200, offset: 200, w: 70, h: 20 }
 
-    ]
+    ],
+
+    platforms: [],
+
+    generate() {
+
+        this.platforms = [];
+
+        const ground = world.getGroundBase();
+
+        for (const p of this.platformData) {
+
+            this.platforms.push(
+                new Platform(
+                    p.x,
+                    ground - p.offset,
+                    p.w,
+                    p.h
+                )
+            );
+
+        }
+
+    }
 
 };
 

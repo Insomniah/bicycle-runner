@@ -13,11 +13,17 @@ const ctx = canvas.getContext("2d");
 
 // Эталонная высота сцены
 // От неё масштабируются все объекты
-function getSceneScale() {
+let sceneScale = 1;
+
+function updateSceneScale() {
 
     const baseHeight = 800;
-    return canvas.height / baseHeight;
+    sceneScale = canvas.height / baseHeight;
 
+}
+
+function getSceneScale() {
+    return sceneScale;
 }
 
 
@@ -42,6 +48,7 @@ function resize() {
 function recalcScene() {
 
     resize();
+    updateSceneScale();
 
     if (typeof sky !== "undefined" && sky.generate) {
         sky.generate();

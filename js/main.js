@@ -9,6 +9,8 @@ addToLayer("background", sky);
 addToLayer("background", mountains);
 addToLayer("world", world);
 
+// генерируем уровень
+level1.generate();
 // добавляем платформы уровня
 
 for (const p of level1.platforms) {
@@ -24,10 +26,8 @@ function gameLoop() {
 
     if (!gameOver) {
 
-        camera.update();
-
         updatePlayer();
-
+        camera.update();
         sky.update();
 
         drawLayers(ctx, camera);

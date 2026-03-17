@@ -8,9 +8,9 @@ const mountains = {
     // типы скал
     rockTypes: [
 
-        { src: "assets/rocks/middle_lane_rock1_1.png", sink: 32 },
-        { src: "assets/rocks/middle_lane_rock1_2.png", sink: 20 },
-        { src: "assets/rocks/middle_lane_rock1_3.png", sink: 12 }
+        { src: "assets/rocks/middle_lane_rock1_1.png", sink: 22 },
+        { src: "assets/rocks/middle_lane_rock1_2.png", sink: 12 },
+        { src: "assets/rocks/middle_lane_rock1_3.png", sink: 6 }
 
     ],
 

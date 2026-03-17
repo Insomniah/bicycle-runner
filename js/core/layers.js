@@ -14,6 +14,14 @@ function addToLayer(layer, obj) {
 
 }
 
+function clearLayer(layer) {
+
+    if (layers[layer]) {
+        layers[layer].length = 0;
+    }
+
+}
+
 function drawLayers(ctx, camera) {
 
     const order = [

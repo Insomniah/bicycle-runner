@@ -13,11 +13,17 @@ const ctx = canvas.getContext("2d");
 
 // Эталонная высота сцены
 // От неё масштабируются все объекты
-function getSceneScale() {
+let sceneScale = 1;
+
+function updateSceneScale() {
 
     const baseHeight = 800;
-    return canvas.height / baseHeight;
+    sceneScale = canvas.height / baseHeight;
 
+}
+
+function getSceneScale() {
+    return sceneScale;
 }
 
 
@@ -39,13 +45,11 @@ function resize() {
 // ===============================
 // Полный перерасчёт сцены
 // ===============================
-
 function recalcScene() {
 
     resize();
+    updateSceneScale();
 
-    // Перегенерируем объекты,
-    // которые зависят от размера экрана
     if (typeof sky !== "undefined" && sky.generate) {
         sky.generate();
     }
@@ -53,10 +57,23 @@ function recalcScene() {
     if (typeof mountains !== "undefined" && mountains.generate) {
         mountains.generate();
     }
-    // игрок должен стоять на земле, даже если её уровень изменился
+
+    if (window.level1 && level1.generate) {
+
+        clearLayer("world");
+        addToLayer("world", world);
+
+        level1.generate();
+
+        for (const p of level1.platforms) {
+            addToLayer("world", p);
+        }
+
+    }
+
     if (window.player) {
-    player.y = world.getGroundBase() - player.height;
-}
+        player.y = world.getGroundBase() - player.height;
+    }
 
 }
 
@@ -64,13 +81,12 @@ function recalcScene() {
 // первый запуск
 recalcScene();
 
-
 // ===============================
 // События изменения размера
 // ===============================
 
-window.addEventListener("resize", recalcScene);
 
+window.addEventListener("resize", recalcScene);
 
 // мобильные браузеры иногда обновляют viewport
 // только спустя время после поворота

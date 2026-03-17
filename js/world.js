@@ -3,10 +3,8 @@ const world = {
     width: 10000,
     height: 2000,
 
-    groundY: 250,
-
     getGroundBase() {
-        return this.groundY;
+        return canvas.height * 0.75;
     },
 
     groundHeight(x) {

@@ -19,50 +19,35 @@ for (const p of level1.platforms) {
 
 
 // основной игровой цикл
+let lastTime = performance.now();
 
-function gameLoop() {
+function gameLoop(time) {
+    if (!gameLoop.lastTime) gameLoop.lastTime = time;
+    const dt = (time - gameLoop.lastTime) / 1000;
+    gameLoop.lastTime = time;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (!gameOver) {
+    camera.update();
+    updatePlayer(dt);
+    sky.update();
+    drawLayers(ctx, camera);
+    drawPlayer();
+    drawUI();
 
-        updatePlayer();
-        camera.update();
-        sky.update();
-
-        drawLayers(ctx, camera);
-
-        // игрок
-        drawPlayer();
-
-        // интерфейс
-        drawUI();
-
+    if (gameOver) {
+        drawGameOver(gameOver === "complete" ? "Stage complete" : "Game Over");
+        // оставляем игрока уходить за край, не останавливаем requestAnimationFrame
         requestAnimationFrame(gameLoop);
-
+    } else {
+        requestAnimationFrame(gameLoop);
     }
-
-    else if (gameOver === true) {
-
-        drawLayers(ctx, camera);
-        drawGameOver("GAME OVER");
-
-    }
-
-    else if (gameOver === "complete") {
-
-        drawLayers(ctx, camera);
-        drawGameOver("STAGE COMPLETE");
-
-    }
-
 }
 
-gameLoop();
-
+// старт цикла
+requestAnimationFrame(gameLoop);
 
 // экран окончания игры
-
 function drawGameOver(text) {
 
     ctx.fillStyle = "rgba(0,0,0,0.7)";

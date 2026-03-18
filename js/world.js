@@ -1,6 +1,6 @@
 const world = {
 
-    width: 10000,
+    width: 3000,
     height: 2000,
 
     getGroundBase() {

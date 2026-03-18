@@ -7,41 +7,49 @@ window.player = {
     width: 50,
     height: 50,
     speed: 6,
-    vy: 0,            // вертикальная скорость
+    vy: 0,
     gravity: 0.8,
     jumpPower: -15,
     onGround: false,
     moveLeft: false,
     moveRight: false,
     jump: function() {
-        if (this.onGround) {
+        if (this.onGround && !gameOver) {
             this.vy = this.jumpPower;
             this.onGround = false;
         }
     }
 };
 
-function updatePlayer() {
+function updatePlayer(dt) {
+    const frame = Math.min(dt * 60, 2);
 
-    // ===== ДВИЖЕНИЕ ПО ГОРИЗОНТАЛИ =====
-    if (player.moveLeft) player.x -= player.speed;
-    if (player.moveRight) player.x += player.speed;
+    // ===== ФИНИШ УРОВНЯ =====
+    const atFinish = player.x + player.width >= world.width - 5;
+    if (atFinish && !gameOver) {
+        gameOver = "complete";
+    }
 
-    // ===== ОГРАНИЧЕНИЕ УРОВНЯ ПО X =====
-    if (player.x < 0) player.x = 0;
-    if (player.x + player.width > world.width) {
-        player.x = world.width - player.width;
+    // ===== ДВИЖЕНИЕ =====
+    if (!gameOver) {
+        if (player.moveLeft) player.x -= player.speed * frame;
+        if (player.moveRight) player.x += player.speed * frame;
+        // Ограничение внутри уровня только если нет финиша
+        if (player.x < 0) player.x = 0;
+    } else if (gameOver === "complete") {
+        // Автоматический уход за край
+        player.x += player.speed * frame;
+        player.moveLeft = false;
+        player.moveRight = false;
     }
 
     // ===== ГРАВИТАЦИЯ =====
-    player.vy += player.gravity;
-    player.y += player.vy;
+    player.vy += player.gravity * frame;
+    player.y += player.vy * frame;
 
     // ===== СБРОС НА ГРУНТ =====
     player.onGround = false;
-
     const ground = world.groundHeight(player.x);
-
     if (player.y + player.height >= ground) {
         player.y = ground - player.height;
         player.vy = 0;
@@ -57,16 +65,12 @@ function updatePlayer() {
 
     // ===== ПАДЕНИЕ В БЕЗДНУ =====
     if (player.y > canvas.height + 300) {
-        gameOver = true;
-    }
-
-    // ===== STAGE COMPLETE =====
-    if (player.x + player.width >= world.width - 5) {
-        gameOver = "complete";
+        gameOver = "fail";
     }
 }
 
-function drawPlayer() {
+// ===== ОТРИСОВКА ИГРОКА =====
+window.drawPlayer = function() {
     ctx.fillStyle = "lime";
     ctx.fillRect(
         player.x - camera.x,
@@ -74,4 +78,5 @@ function drawPlayer() {
         player.width,
         player.height
     );
+    console.log(player.x, player.y)
 }

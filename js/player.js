@@ -22,23 +22,32 @@ window.player = {
 };
 
 function updatePlayer(dt) {
-    const frame = Math.min(dt * 60, 2);
+    const frame = Math.min(dt * 60, 2); // нормализация скорости для разных FPS
 
     // ===== ФИНИШ УРОВНЯ =====
     const atFinish = player.x + player.width >= world.width - 5;
     if (atFinish && !gameOver) {
         gameOver = "complete";
+        player.autoMove = true; // включаем авто-движение за край
     }
 
     // ===== ДВИЖЕНИЕ =====
     if (!gameOver) {
         if (player.moveLeft) player.x -= player.speed * frame;
         if (player.moveRight) player.x += player.speed * frame;
-        // Ограничение внутри уровня только если нет финиша
+
+        // Ограничение по левому краю
         if (player.x < 0) player.x = 0;
-    } else if (gameOver === "complete") {
-        // Автоматический уход за край
-        player.x += player.speed * frame;
+
+        // Ограничение по правому краю только если нет финиша
+        if (!player.autoMove && player.x + player.width > world.width) {
+            player.x = world.width - player.width;
+        }
+    } else if (gameOver === "complete" && player.autoMove) {
+        // Авто-движение за предел экрана
+        const maxX = world.width + 200; // сколько нужно для визуального ухода
+        if (player.x < maxX) player.x += player.speed * frame;
+        else player.autoMove = false; // останавливаем после ухода
         player.moveLeft = false;
         player.moveRight = false;
     }
@@ -78,5 +87,4 @@ window.drawPlayer = function() {
         player.width,
         player.height
     );
-    console.log(player.x, player.y)
 }

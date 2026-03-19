@@ -13,6 +13,7 @@ window.player = {
     onGround: false,
     moveLeft: false,
     moveRight: false,
+    autoMove: false,
     jump: function() {
         if (this.onGround && !gameOver) {
             this.vy = this.jumpPower;

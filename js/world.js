@@ -11,9 +11,14 @@ const world = {
 
     groundHeight(x) {
 
-        // пока земля ровная
-        return this.getGroundBase();
+        const base = this.getGroundBase();
 
+        // ===== ЯМА =====
+        if (x > 800 && x < 1200) {
+            return base + 1000; // "дыра вниз"
+        }
+
+        return base;
     },
 
     draw(ctx, camera) {

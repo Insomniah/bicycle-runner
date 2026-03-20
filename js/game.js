@@ -1,5 +1,6 @@
 window.canvas = document.getElementById("gameCanvas");
 window.ctx = canvas.getContext("2d");
+window.DEBUG = true;
 
 window.gameOver = false;
 

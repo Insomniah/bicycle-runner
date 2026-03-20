@@ -35,6 +35,8 @@ function gameLoop(time) {
     drawPlayer();
     drawUI();
 
+    drawDebug();
+
     if (gameOver) {
         drawGameOver(gameOver === "complete" ? "Stage complete" : "Game Over");
         // оставляем игрока уходить за край, не останавливаем requestAnimationFrame
@@ -59,4 +61,31 @@ function drawGameOver(text) {
 
     ctx.fillText(text, canvas.width / 2, canvas.height / 2);
 
+}
+
+function drawDebug() {
+    if (!window.DEBUG) return;
+
+    ctx.save();
+    ctx.fillStyle = "white";
+    ctx.font = "14px monospace";
+    ctx.textAlign = "left";
+
+    const screenX = player.x - camera.x;
+    const screenY = player.y - camera.y;
+
+    ctx.fillText(`player.x: ${player.x.toFixed(1)}`, 10, 20);
+    ctx.fillText(`player.y: ${player.y.toFixed(1)}`, 10, 40);
+
+    ctx.fillText(`screenX: ${screenX.toFixed(1)}`, 10, 60);
+    ctx.fillText(`screenY: ${screenY.toFixed(1)}`, 10, 80);
+
+    ctx.fillText(`camera.y: ${camera.y.toFixed(1)}`, 10, 100);
+
+    ctx.fillText(`ground: ${world.groundHeight(player.x).toFixed(1)}`, 10, 120);
+
+    ctx.fillText(`vy: ${player.vy.toFixed(2)}`, 10, 140);
+    ctx.fillText(`onGround: ${player.onGround}`, 10, 160);
+
+    ctx.restore();
 }

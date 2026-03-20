@@ -1,12 +1,11 @@
 const world = {
 
-    width: 3000,
-    height: 2000,
-
-    groundY: 1500, // ← ВОЗВРАЩАЕМ, но уже правильно
+    width: 3000, // ширина мира
+    height: 2000, // высота мира (для генерации платформ и т.п.)
+    groundY: 1500,// базовая высота земли
 
     getGroundBase() {
-        return this.groundY;
+        return this.groundY; // в будущем можно будет сделать рельеф, а пока просто базовая линия
     },
 
     groundHeight(x) {
@@ -15,7 +14,7 @@ const world = {
         return this.getGroundBase();
 
     },
-
+    // отрисовка земли
     draw(ctx, camera) {
 
         ctx.fillStyle = "rgb(0,190,0)";

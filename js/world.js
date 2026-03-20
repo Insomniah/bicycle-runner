@@ -3,8 +3,10 @@ const world = {
     width: 3000,
     height: 2000,
 
+    groundY: 1500, // ← ВОЗВРАЩАЕМ, но уже правильно
+
     getGroundBase() {
-        return canvas.height * 0.75;
+        return this.groundY;
     },
 
     groundHeight(x) {

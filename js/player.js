@@ -8,8 +8,8 @@ window.player = {
     height: 50,
     speed: 6,
     vy: 0,
-    gravity: 0.8,
-    jumpPower: -15,
+    gravity: 0.3,
+    jumpPower: -9,
     onGround: false,
     moveLeft: false,
     moveRight: false,
@@ -74,7 +74,7 @@ function updatePlayer(dt) {
     }
 
     // ===== ПАДЕНИЕ В БЕЗДНУ =====
-    if (player.y > canvas.height + 300) {
+    if (player.y - camera.y > canvas.height + 300) {
         gameOver = "fail";
     }
 }

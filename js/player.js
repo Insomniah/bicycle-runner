@@ -14,6 +14,7 @@ window.player = {
     moveLeft: false,
     moveRight: false,
     autoMove: false,
+    prevY: 0,
     jump: function() {
         if (this.onGround && !gameOver) {
             this.vy = this.jumpPower;
@@ -23,6 +24,7 @@ window.player = {
 };
 
 function updatePlayer(dt) {
+    player.prevY = player.y;
     const frame = Math.min(dt * 60, 2); // нормализация скорости для разных FPS
 
     // ===== ФИНИШ УРОВНЯ =====
@@ -57,10 +59,24 @@ function updatePlayer(dt) {
     player.vy += player.gravity * frame;
     player.y += player.vy * frame;
 
-    // ===== СБРОС НА ГРУНТ =====
+    // ===== КОЛЛИЗИЯ С ЗЕМЛЕЙ (ПРАВИЛЬНАЯ) =====
     player.onGround = false;
-    const ground = world.groundHeight(player.x);
-    if (player.y + player.height >= ground) {
+
+    const leftGround = world.groundHeight(player.x);
+    const rightGround = world.groundHeight(player.x + player.width);
+
+    // Берём БОЛЬШЕЕ значение (самую высокую поверхность)
+    const ground = Math.min(leftGround, rightGround);
+
+    const playerBottom = player.y + player.height;
+    const prevBottom = player.prevY + player.height;
+
+    // Проверяем, что игрок ПАДАЛ СВЕРХУ
+    if (
+        player.vy >= 0 &&
+        prevBottom <= ground &&
+        playerBottom >= ground
+    ) {
         player.y = ground - player.height;
         player.vy = 0;
         player.onGround = true;

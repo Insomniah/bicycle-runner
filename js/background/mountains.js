@@ -1,3 +1,5 @@
+// mountains.js — дальний фон, апскейленные "горы"
+
 const mountains = {
 
     list: [],
@@ -5,11 +7,11 @@ const mountains = {
     // параллакс слоя
     parallax: 0.15,
 
-    // типы скал
+    // типы скал (будем апскейлить)
     rockTypes: [
-        { src: "assets/rocks/middle_lane_rock1_1.png", sink: 22 },
-        { src: "assets/rocks/middle_lane_rock1_2.png", sink: 12 },
-        { src: "assets/rocks/middle_lane_rock1_3.png", sink: 6 }
+        "assets/rocks/middle_lane_rock1_1.png",
+        "assets/rocks/middle_lane_rock1_2.png",
+        "assets/rocks/middle_lane_rock1_3.png"
     ],
 
     images: [],
@@ -19,33 +21,32 @@ const mountains = {
         this.images = [];
 
         // загружаем картинки
-        for (const type of this.rockTypes) {
+        for (const src of this.rockTypes) {
             const img = new Image();
-            img.src = type.src;
-            this.images.push({ img: img, sink: type.sink });
+            img.src = src;
+            this.images.push(img);
         }
 
         let x = 300;
+        const level = world.currentLevel;
 
-        while (x < level1.width) { // вместо world.width
-            // выбираем случайный тип скалы
-            const type = this.images[Math.floor(Math.random() * this.images.length)];
+        while (x < level.width) {
+            // случайная картинка
+            const img = this.images[Math.floor(Math.random() * this.images.length)];
 
             this.list.push({
                 x: x,
-                img: type.img,
-                sink: type.sink,
-                scale: 0.8 + Math.random() * 0.4
+                img: img,
+                scale: 2 + Math.random() * 0.5 // апскейлим в ~3 раза
             });
 
-            // расстояние до следующей скалы
+            // расстояние до следующей "горы"
             const spacing = 250 + Math.random() * 100;
             x += spacing;
         }
     },
 
     draw(ctx, camera) {
-        const groundBase = level1.getGroundBase(); // вместо world
 
         for (const r of this.list) {
             const x = r.x - camera.x * this.parallax;
@@ -55,7 +56,9 @@ const mountains = {
 
             const w = r.img.width * r.scale;
             const h = r.img.height * r.scale;
-            const y = groundBase - h + r.sink - camera.y;
+
+            // привязка к низу экрана
+            const y = canvas.height - h;
 
             ctx.drawImage(r.img, x, y, w, h);
         }

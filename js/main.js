@@ -10,6 +10,7 @@ world.currentLevel = level1;
 // генерируем фоновые объекты
 sky.generate();
 mountains.generate();
+rocks.generate();
 
 // РЕГИСТРИРУЕМ В WORLD
 world.sky = sky;
@@ -19,6 +20,7 @@ world.mountains = mountains;
 addToLayer("background", skyBackground);
 addToLayer("background", sky);
 addToLayer("background", mountains);
+addToLayer("midground", rocks);
 
 // инициализация сцены и игрока
 recalcScene();

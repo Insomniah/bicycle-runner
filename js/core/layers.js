@@ -1,6 +1,7 @@
 const layers = {
 
     background: [],
+    midground: [],
     world: [],
     actors: [],
     foreground: [],
@@ -26,6 +27,7 @@ function drawLayers(ctx, camera) {
 
     const order = [
         "background",
+        "midground",
         "world",
         "actors",
         "foreground",

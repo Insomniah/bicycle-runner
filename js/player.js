@@ -103,6 +103,11 @@ window.updatePlayer = function(dt) {
             player.onGround = true;
         }
     }
+    // ===== ОГРАНИЧЕНИЯ ПО ГОРИЗОНТАЛИ =====
+    if (player.x < 0) {
+        player.x = 0;
+        player.moveLeft = false;
+    }
 
     // ===== ПАДЕНИЕ ЗА ПРЕДЕЛЫ =====
     const bottomLimit = level.height + 200;

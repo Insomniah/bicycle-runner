@@ -10,15 +10,11 @@ const ctx = canvas.getContext("2d");
 // Масштаб сцены
 // ===============================
 
-// Эталонная высота сцены
-// От неё масштабируются все объекты
 let sceneScale = 1;
 
 function updateSceneScale() {
-
     const baseHeight = 800;
     sceneScale = canvas.height / baseHeight;
-
 }
 
 function getSceneScale() {
@@ -30,20 +26,18 @@ function getSceneScale() {
 // ===============================
 
 function resize() {
-
     const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
     const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
 
     canvas.width = vw;
     canvas.height = vh;
-
 }
 
 // ===============================
 // Полный перерасчёт сцены
 // ===============================
-function recalcScene() {
 
+function recalcScene() {
     resize();
     updateSceneScale();
 
@@ -57,24 +51,9 @@ function recalcScene() {
 
     // ===== УРОВЕНЬ =====
     if (window.level1 && level1.generate) {
-
         level1.generate();
 
         for (const p of level1.platforms) {
-            addToLayer("world", p);
-        }
-    }
-
-    console.log("world:", window.world);
-    console.log("generateGround:", window.world?.generateGround);
-    // ===== ЗЕМЛЯ =====
-    if (window.world && world.generateGround) {
-
-        world.generateGround();
-
-        console.log("GROUND:", world.groundPlatforms);
-
-        for (const p of world.groundPlatforms) {
             addToLayer("world", p);
         }
     }
@@ -89,8 +68,11 @@ function recalcScene() {
 // События изменения размера
 // ===============================
 window.addEventListener("resize", recalcScene);
-// мобильные браузеры иногда обновляют viewport
-// только спустя время после поворота
 window.addEventListener("orientationchange", () => {
     setTimeout(recalcScene, 200);
 });
+
+// ===============================
+// Первый запуск
+// ===============================
+window.addEventListener("load", recalcScene);

@@ -58,7 +58,7 @@ function updatePlayer(dt) {
     player.onGround = false;
 
     // ===== КОЛЛИЗИИ С ПЛАТФОРМАМИ УРОВНЯ =====
-    const allPlatforms = [...(window.level1?.platforms || []), ...world.groundPlatforms];
+    const allPlatforms = window.level1?.platforms || [];
     for (const p of allPlatforms) {
         const playerBottom = player.y + player.height;
         const prevBottom = player.prevY + player.height;
@@ -89,8 +89,7 @@ function updatePlayer(dt) {
         player.moveLeft = false;
         player.moveRight = false;
     }
-}
-
+};
 // ===== ОТРИСОВКА ИГРОКА =====
 window.drawPlayer = function() {
     ctx.fillStyle = "lime";

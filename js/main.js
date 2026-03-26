@@ -56,26 +56,19 @@ function drawGameOver(text) {
 }
 
 function drawDebug() {
-    if (!window.DEBUG) return;
-
-    ctx.save();
     ctx.fillStyle = "white";
     ctx.font = "14px monospace";
     ctx.textAlign = "left";
 
-    const screenX = player.x - camera.x;
-    const screenY = player.y - camera.y;
+    let lines = [
+        `PLAYER: x=${player.x.toFixed(1)}, y=${player.y.toFixed(1)}, vy=${player.vy.toFixed(2)}, onGround=${player.onGround}`,
+        `MOVE: left=${player.moveLeft}, right=${player.moveRight}, auto=${player.autoMove}`,
+        `PLATFORMS: count=${level1.platforms.length}`,
+        `WORLD: w=${world.width}, h=${world.height}`,
+        `GAME: ${gameOver || "running"}`
+    ];
 
-    ctx.fillText(`player.x: ${player.x.toFixed(1)}`, 10, 20);
-    ctx.fillText(`player.y: ${player.y.toFixed(1)}`, 10, 40);
-
-    ctx.fillText(`screenX: ${screenX.toFixed(1)}`, 10, 60);
-    ctx.fillText(`screenY: ${screenY.toFixed(1)}`, 10, 80);
-
-    ctx.fillText(`camera.y: ${camera.y.toFixed(1)}`, 10, 100);
-
-    ctx.fillText(`vy: ${player.vy.toFixed(2)}`, 10, 140);
-    ctx.fillText(`onGround: ${player.onGround}`, 10, 160);
-
-    ctx.restore();
+    lines.forEach((line, i) => {
+        ctx.fillText(line, 10, 20 + i * 18);
+    });
 }

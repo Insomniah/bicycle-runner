@@ -2,10 +2,12 @@ const sky = {
     clouds: [],
     windSpeed: 0.2, // положительное = вправо, отрицательное = влево
 
+    // Генерация облаков по ширине уровня
     generate() {
         this.clouds = [];
         const spacing = 200;
-        const count = Math.ceil(level1.width / spacing); // уровень, а не world
+        const level = window.world.currentLevel; // Получаем текущий уровень из мира
+        const count = Math.ceil(level.width / spacing); // Количество облаков, чтобы покрыть весь уровень
         const minY = 40;
         const maxY = canvas.height * 0.25;
 
@@ -21,16 +23,17 @@ const sky = {
         }
     },
 
+    // Обновление позиции облаков с учётом скорости ветра и зацикливание
     update() {
-        // движение облаков
         for (const cloud of this.clouds) {
             cloud.x -= this.windSpeed;
 
-            // зацикливание по длине уровня
-            if (this.windSpeed > 0 && cloud.x > level1.width + 300) {
+            // Зацикливание облаков при выходе за границы уровня
+            const level = window.world.currentLevel;
+            if (this.windSpeed > 0 && cloud.x > level.width + 300) {
                 cloud.x = -cloud.w;
             } else if (this.windSpeed < 0 && cloud.x < -cloud.w) {
-                cloud.x = level1.width + 300;
+                cloud.x = level.width + 300;
             }
         }
     },

@@ -61,7 +61,6 @@ function handleTouch(e) {
 
 // ПК управление
 window.addEventListener("keydown", (e) => {
-    console.log("KEYDOWN", e.key); // <- проверить, что клавиши ловятся
 
     if (e.key === "ArrowLeft" || e.key === "a") player.moveLeft = true;
     if (e.key === "ArrowRight" || e.key === "d") player.moveRight = true;
@@ -69,7 +68,6 @@ window.addEventListener("keydown", (e) => {
 });
 
 window.addEventListener("keyup", (e) => {
-    console.log("KEYUP", e.key); // <- проверить, что клавиши ловятся
 
     if (e.key === "ArrowLeft" || e.key === "a") player.moveLeft = false;
     if (e.key === "ArrowRight" || e.key === "d") player.moveRight = false;

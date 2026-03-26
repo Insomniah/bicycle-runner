@@ -21,7 +21,6 @@ window.player = {
         if (this.onGround && gameOver === false) {
             this.vy = this.jumpPower;
             this.onGround = false;
-            console.log("JUMP executed, vy =", this.vy);
         }
     }
 };
@@ -52,14 +51,6 @@ window.updatePlayer = function(dt) {
         return;
     }
 
-    console.log("updatePlayer called", {
-        levelWidth: level.width,
-        levelHeight: level.height,
-        playerX: player.x.toFixed(1),
-        playerY: player.y.toFixed(1),
-        gameOver
-    });
-
     player.prevY = player.y;
 
     const frame = Math.max(0.5, Math.min(dt * 60, 2));
@@ -76,11 +67,9 @@ window.updatePlayer = function(dt) {
     if (gameOver === false) {
         if (player.moveLeft) {
             player.x -= player.speed * frame;
-            console.log("Moving LEFT, x =", player.x.toFixed(1));
         }
         if (player.moveRight) {
             player.x += player.speed * frame;
-            console.log("Moving RIGHT, x =", player.x.toFixed(1));
         }
     }
     else if (gameOver === "complete" && player.autoMove) {

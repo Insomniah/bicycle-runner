@@ -5,7 +5,7 @@ const sky = {
     generate() {
         this.clouds = [];
         const spacing = 200;
-        const count = Math.ceil(world.width / spacing);
+        const count = Math.ceil(level1.width / spacing); // уровень, а не world
         const minY = 40;
         const maxY = canvas.height * 0.25;
 
@@ -27,10 +27,10 @@ const sky = {
             cloud.x -= this.windSpeed;
 
             // зацикливание по длине уровня
-            if (this.windSpeed > 0 && cloud.x > world.width + 300) {
+            if (this.windSpeed > 0 && cloud.x > level1.width + 300) {
                 cloud.x = -cloud.w;
             } else if (this.windSpeed < 0 && cloud.x < -cloud.w) {
-                cloud.x = world.width + 300;
+                cloud.x = level1.width + 300;
             }
         }
     },

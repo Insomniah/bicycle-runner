@@ -9,7 +9,6 @@ const ctx = canvas.getContext("2d");
 // ===============================
 // Масштаб сцены
 // ===============================
-
 let sceneScale = 1;
 
 function updateSceneScale() {
@@ -24,7 +23,6 @@ function getSceneScale() {
 // ===============================
 // Пересчёт размеров canvas
 // ===============================
-
 function resize() {
     const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
     const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
@@ -36,7 +34,6 @@ function resize() {
 // ===============================
 // Полный перерасчёт сцены
 // ===============================
-
 function recalcScene() {
     resize();
     updateSceneScale();
@@ -51,16 +48,22 @@ function recalcScene() {
 
     // ===== УРОВЕНЬ =====
     if (window.level1 && level1.generate) {
-        level1.generate();
+        level1.generate(); // создаёт platforms и groundPlatforms
 
+        // ===== платформы уровня =====
         for (const p of level1.platforms) {
+            addToLayer("world", p);
+        }
+
+        // ===== земля =====
+        for (const p of level1.groundPlatforms) {
             addToLayer("world", p);
         }
     }
 
     // ===== ИГРОК =====
     if (window.player) {
-        player.y = world.getGroundBase() - player.height;
+        player.y = level1.getGroundBase() - player.height;
     }
 }
 

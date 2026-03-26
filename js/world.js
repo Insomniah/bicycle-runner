@@ -1,43 +1,31 @@
+// world.js — минимальный контейнер для сцены/фона
 const world = {
+    // ===== Фоновые объекты =====
+    sky: null,
+    mountains: null,
+    clouds: [],
 
-    width: 3000,
-    height: 2000,
-
-    groundY: 1500, // базовый уровень земли
-
-    // groundPlatforms: [],
-
-    // возвращает базовую линию земли
-    getGroundBase() {
-        return this.groundY;
+    // ===== Методы для работы с объектами мира =====
+    addCloud(cloud) {
+        this.clouds.push(cloud);
     },
 
-    // // генерируем «физическую» землю как платформы
-    // generateGround() {
-    //     console.log("GENERATE GROUND CALLED"); // ← логируем факт вызова
-        
-    //     const base = this.getGroundBase(); // ← объявляем ПЕРЕД использованием
-    //     console.log("GROUND Y:", base);    // ← теперь безопасно логировать
+    // Можно добавить методы для обновления/отрисовки фона, камеры и эффектов
+    update() {
+        if (this.sky && this.sky.update) this.sky.update();
+        if (this.mountains && this.mountains.update) this.mountains.update();
+        for (const cloud of this.clouds) {
+            if (cloud.update) cloud.update();
+        }
+    },
 
-    //     this.groundPlatforms = [];
-
-    //     // Левая платформа (до первой ямы)
-    //     this.groundPlatforms.push(
-    //         new Platform(0, base, 800, 200)
-    //     );
-
-    //     // Средняя платформа (после первой ямы)
-    //     this.groundPlatforms.push(
-    //         new Platform(1200, base, 800, 200)
-    //     );
-
-    //     // Правая платформа (после второй ямы)
-    //     this.groundPlatforms.push(
-    //         new Platform(2200, base, 1200, 200)
-    //     );
-    // },
-
-    // рисуем визуальную землю, НЕ трогаем коллизии
+    draw(ctx, camera) {
+        if (this.sky && this.sky.draw) this.sky.draw(ctx, camera);
+        if (this.mountains && this.mountains.draw) this.mountains.draw(ctx, camera);
+        for (const cloud of this.clouds) {
+            if (cloud.draw) cloud.draw(ctx, camera);
+        }
+    }
 };
 
-window.world = world; // экспортируем для доступа из других файлов
+window.world = world;

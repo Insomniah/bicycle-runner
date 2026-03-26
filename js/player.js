@@ -1,9 +1,10 @@
-// ===== Глобальные переменные игрока =====
-window.gameOver = false;
-
+// ===============================
+// Глобальные флаги игры
+// ===============================
+window.gameOver = false;        // false | "complete" | "fail"
 window.player = {
     x: 200,
-    y: 0, // задаём после генерации уровня
+    y: 0,               // будет установлен после генерации уровня
     width: 50,
     height: 50,
     speed: 6,
@@ -15,91 +16,123 @@ window.player = {
     moveRight: false,
     autoMove: false,
     prevY: 0,
-    jump: function() {
-        if (this.onGround && !gameOver) {
+
+    jump() {
+        if (this.onGround && gameOver === false) {
             this.vy = this.jumpPower;
             this.onGround = false;
+            console.log("JUMP executed, vy =", this.vy);
         }
     }
 };
 
-// ===== Инициализация позиции игрока после генерации уровня =====
+// ===============================
+// Инициализация позиции игрока
+// ===============================
 window.initPlayerPosition = function() {
-    const ground = level1.getGroundBase();
-    player.y = ground - player.height;
+    const level = world.currentLevel;
+    if (!level) return;
+
+    player.y = level.getGroundBase() - player.height;
+    player.x = 200;
+    player.vy = 0;
+    player.onGround = false;
+    player.autoMove = false;
+
+    console.log("Player initialized at", { x: player.x, y: player.y });
 };
 
-// ===== Обновление игрока =====
+// ===============================
+// Обновление игрока
+// ===============================
 window.updatePlayer = function(dt) {
-    player.prevY = player.y;
-    const frame = Math.min(dt * 60, 2);
+    const level = world.currentLevel;
+    if (!level) {
+        console.warn("updatePlayer called but no current level");
+        return;
+    }
 
-    // ===== Финиш уровня =====
-    const atFinish = player.x + player.width >= level1.width - 5;
-    if (atFinish && !gameOver) {
+    console.log("updatePlayer called", {
+        levelWidth: level.width,
+        levelHeight: level.height,
+        playerX: player.x.toFixed(1),
+        playerY: player.y.toFixed(1),
+        gameOver
+    });
+
+    player.prevY = player.y;
+
+    const frame = Math.max(0.5, Math.min(dt * 60, 2));
+
+    // ===== ФИНИШ УРОВНЯ =====
+    const atFinish = player.x + player.width >= level.width - 5;
+    if (atFinish && gameOver === false) {
         gameOver = "complete";
         player.autoMove = true;
+        console.log("Level finished! gameOver set to 'complete'");
     }
 
-    // ===== Движение =====
-    if (!gameOver) {
-        if (player.moveLeft) player.x -= player.speed * frame;
-        if (player.moveRight) player.x += player.speed * frame;
-
-        if (player.x < 0) player.x = 0;
-        if (!player.autoMove && player.x + player.width > level1.width) {
-            player.x = level1.width - player.width;
+    // ===== ДВИЖЕНИЕ =====
+    if (gameOver === false) {
+        if (player.moveLeft) {
+            player.x -= player.speed * frame;
+            console.log("Moving LEFT, x =", player.x.toFixed(1));
         }
-    } else if (gameOver === "complete" && player.autoMove) {
-        const maxX = level1.width + 200;
+        if (player.moveRight) {
+            player.x += player.speed * frame;
+            console.log("Moving RIGHT, x =", player.x.toFixed(1));
+        }
+    }
+    else if (gameOver === "complete" && player.autoMove) {
+        const maxX = level.width + 200;
         if (player.x < maxX) player.x += player.speed * frame;
         else player.autoMove = false;
+
         player.moveLeft = false;
         player.moveRight = false;
     }
 
-    // ===== Гравитация =====
+    // ===== ГРАВИТАЦИЯ =====
     player.vy += player.gravity * frame;
     player.y += player.vy * frame;
     player.onGround = false;
 
-    // ===== Коллизии с платформами и землёй =====
-    const allPlatforms = [...(level1.platforms || []), ...(level1.groundPlatforms || [])];
+    // ===== КОЛЛИЗИИ С ПЛАТФОРМАМИ =====
+    const allPlatforms = [...(level.platforms || []), ...(level.groundPlatforms || [])];
     for (const p of allPlatforms) {
         const playerBottom = player.y + player.height;
         const prevBottom = player.prevY + player.height;
-
-        const platformTop = p.y;
-        const platformLeft = p.x;
-        const platformRight = p.x + p.width;
-
         if (
             player.vy >= 0 &&
-            prevBottom <= platformTop &&
-            playerBottom >= platformTop &&
-            player.x + player.width > platformLeft &&
-            player.x < platformRight
+            prevBottom <= p.y &&
+            playerBottom >= p.y &&
+            player.x + player.width > p.x &&
+            player.x < p.x + p.width
         ) {
-            player.y = platformTop - player.height;
+            player.y = p.y - player.height;
             player.vy = 0;
             player.onGround = true;
         }
     }
 
-    // ===== Нижний предел мира =====
-    const bottomLimit = level1.height + 200;
+    // ===== ПАДЕНИЕ ЗА ПРЕДЕЛЫ =====
+    const bottomLimit = level.height + 200;
     if (player.y > bottomLimit) {
         player.y = bottomLimit;
         player.vy = 0;
-        gameOver = "fail";
+        if (gameOver === false) gameOver = "fail";
         player.moveLeft = false;
         player.moveRight = false;
+        console.log("Player fell off level, gameOver =", gameOver);
     }
 };
 
-// ===== Отрисовка игрока =====
+// ===============================
+// Отрисовка игрока
+// ===============================
 window.drawPlayer = function(ctx, camera) {
-    if (!ctx || !camera) return; // защита на случай раннего вызова
+    if (!ctx || !camera) return;
+
     ctx.fillStyle = "lime";
     ctx.fillRect(
         player.x - camera.x,

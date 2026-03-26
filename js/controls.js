@@ -61,22 +61,7 @@ function handleTouch(e) {
 
 // ПК управление
 window.addEventListener("keydown", (e) => {
-
-        // ===== DEBUG TOGGLE =====
-    if (e.key === "`" || e.key === "ё") {
-        window.DEBUG = !window.DEBUG;
-
-        console.log({
-            playerX: player.x.toFixed(2),
-            playerY: player.y.toFixed(2),
-            playerVy: player.vy.toFixed(2),
-            cameraX: camera.x.toFixed(2),
-            cameraY: camera.y.toFixed(2),
-            ground: world.groundHeight(player.x).toFixed(2),
-            onGround: player.onGround
-        });
-        return; // чтобы не мешало другим действиям
-    }
+    console.log("KEYDOWN", e.key); // <- проверить, что клавиши ловятся
 
     if (e.key === "ArrowLeft" || e.key === "a") player.moveLeft = true;
     if (e.key === "ArrowRight" || e.key === "d") player.moveRight = true;
@@ -84,6 +69,8 @@ window.addEventListener("keydown", (e) => {
 });
 
 window.addEventListener("keyup", (e) => {
+    console.log("KEYUP", e.key); // <- проверить, что клавиши ловятся
+
     if (e.key === "ArrowLeft" || e.key === "a") player.moveLeft = false;
     if (e.key === "ArrowRight" || e.key === "d") player.moveRight = false;
 });

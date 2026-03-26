@@ -1,6 +1,13 @@
 // ===============================
-// Фоновые объекты
+// Инициализация уровней и мира
 // ===============================
+level1.generate();
+level2.generate();
+
+// ставим текущий уровень
+world.currentLevel = level1;
+
+// генерируем фоновые объекты
 sky.generate();
 mountains.generate();
 
@@ -9,7 +16,7 @@ addToLayer("background", skyBackground);
 addToLayer("background", sky);
 addToLayer("background", mountains);
 
-// Инициализация сцены
+// инициализация сцены и игрока
 recalcScene();
 initPlayerPosition(); // ставим игрока на землю после генерации уровня
 
@@ -17,6 +24,7 @@ initPlayerPosition(); // ставим игрока на землю после г
 // Игровой цикл
 // ===============================
 let lastTime = performance.now();
+let nextLevelQueued = false;
 
 function gameLoop(time) {
     if (!gameLoop.lastTime) gameLoop.lastTime = time;
@@ -26,26 +34,44 @@ function gameLoop(time) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     camera.update();
-    updatePlayer(dt);
+    window.updatePlayer(dt);
 
-    // обновление и отрисовка фоновых слоёв
-    sky.update();
+    // обновляем фон и мир
+    world.update();
+
     drawLayers(ctx, camera);
-
-    // игрок
     drawPlayer(ctx, camera);
-
-    // интерфейс
     drawUI();
     drawDebug();
 
-    // проверка состояния игры
+    // ===============================
+    // Проверка конца уровня / игры
+    // ===============================
     if (gameOver) {
         drawGameOver(gameOver === "complete" ? "Stage complete" : "Game Over");
+
+        if (gameOver === "complete" && !nextLevelQueued) {
+            nextLevelQueued = true;
+
+            setTimeout(() => {
+                console.log("Switching to level2...");
+
+                // переключаем текущий уровень
+                world.currentLevel = level2;
+                level2.generate();
+                initPlayerPosition();
+                camera.initialized = false;
+
+                gameOver = false;
+                nextLevelQueued = false;
+            }, 2000);
+        }
+
         requestAnimationFrame(gameLoop);
-    } else {
-        requestAnimationFrame(gameLoop);
+        return;
     }
+
+    requestAnimationFrame(gameLoop);
 }
 
 // ===============================
@@ -69,13 +95,16 @@ function drawDebug() {
     ctx.font = "14px monospace";
     ctx.textAlign = "left";
 
+    const level = world.currentLevel;
+
     let lines = [
         `PLAYER: x=${player.x.toFixed(1)}, y=${player.y.toFixed(1)}, vy=${player.vy.toFixed(2)}, onGround=${player.onGround}`,
         `MOVE: left=${player.moveLeft}, right=${player.moveRight}, auto=${player.autoMove}`,
-        `PLATFORMS: level=${level1.platforms.length}, ground=${level1.groundPlatforms.length}`,
-        `LEVEL SIZE: w=${level1.width}, h=${level1.height}`,
+        `PLATFORMS: level=${level.platforms.length}, ground=${level.groundPlatforms.length}`,
+        `LEVEL: ${level ? "№" + level.number + " w=" + level.width + ", h=" + level.height : "none"}`,
         `CAMERA: x=${camera.x.toFixed(1)}, y=${camera.y.toFixed(1)}`,
-        `GAME: ${gameOver || "running"}`
+        `GAME: ${gameOver || "running"}`,
+        `STATE: isPlaying=${gameOver === false}, gameOver=${gameOver}`
     ];
 
     lines.forEach((line, i) => {

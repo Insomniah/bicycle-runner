@@ -11,6 +11,10 @@ world.currentLevel = level1;
 sky.generate();
 mountains.generate();
 
+// РЕГИСТРИРУЕМ В WORLD
+world.sky = sky;
+world.mountains = mountains;
+
 // регистрируем слои
 addToLayer("background", skyBackground);
 addToLayer("background", sky);

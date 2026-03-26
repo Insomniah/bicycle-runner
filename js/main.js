@@ -7,16 +7,8 @@ mountains.generate();
 addToLayer("background", skyBackground);
 addToLayer("background", sky);
 addToLayer("background", mountains);
-addToLayer("world", world);
 
-// генерируем уровень
-level1.generate();
-// добавляем платформы уровня
-
-for (const p of level1.platforms) {
-    addToLayer("world", p);
-}
-
+recalcScene(); // Инициализация сцены
 
 // основной игровой цикл
 let lastTime = performance.now();
@@ -81,8 +73,6 @@ function drawDebug() {
     ctx.fillText(`screenY: ${screenY.toFixed(1)}`, 10, 80);
 
     ctx.fillText(`camera.y: ${camera.y.toFixed(1)}`, 10, 100);
-
-    ctx.fillText(`ground: ${world.groundHeight(player.x).toFixed(1)}`, 10, 120);
 
     ctx.fillText(`vy: ${player.vy.toFixed(2)}`, 10, 140);
     ctx.fillText(`onGround: ${player.onGround}`, 10, 160);

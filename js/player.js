@@ -25,13 +25,13 @@ window.player = {
 
 function updatePlayer(dt) {
     player.prevY = player.y;
-    const frame = Math.min(dt * 60, 2); // нормализация скорости для разных FPS
+    const frame = Math.min(dt * 60, 2);
 
     // ===== ФИНИШ УРОВНЯ =====
     const atFinish = player.x + player.width >= world.width - 5;
     if (atFinish && !gameOver) {
         gameOver = "complete";
-        player.autoMove = true; // включаем авто-движение за край
+        player.autoMove = true;
     }
 
     // ===== ДВИЖЕНИЕ =====
@@ -39,18 +39,14 @@ function updatePlayer(dt) {
         if (player.moveLeft) player.x -= player.speed * frame;
         if (player.moveRight) player.x += player.speed * frame;
 
-        // Ограничение по левому краю
         if (player.x < 0) player.x = 0;
-
-        // Ограничение по правому краю только если нет финиша
         if (!player.autoMove && player.x + player.width > world.width) {
             player.x = world.width - player.width;
         }
     } else if (gameOver === "complete" && player.autoMove) {
-        // Авто-движение за предел экрана
-        const maxX = world.width + 200; // сколько нужно для визуального ухода
+        const maxX = world.width + 200;
         if (player.x < maxX) player.x += player.speed * frame;
-        else player.autoMove = false; // останавливаем после ухода
+        else player.autoMove = false;
         player.moveLeft = false;
         player.moveRight = false;
     }
@@ -59,39 +55,39 @@ function updatePlayer(dt) {
     player.vy += player.gravity * frame;
     player.y += player.vy * frame;
 
-    // ===== КОЛЛИЗИЯ С ЗЕМЛЕЙ (ПРАВИЛЬНАЯ) =====
     player.onGround = false;
 
-    const leftGround = world.groundHeight(player.x);
-    const rightGround = world.groundHeight(player.x + player.width);
+    // ===== КОЛЛИЗИИ С ПЛАТФОРМАМИ УРОВНЯ =====
+    const allPlatforms = [...(window.level1?.platforms || []), ...world.groundPlatforms];
+    for (const p of allPlatforms) {
+        const playerBottom = player.y + player.height;
+        const prevBottom = player.prevY + player.height;
 
-    // Берём БОЛЬШЕЕ значение (самую высокую поверхность)
-    const ground = Math.min(leftGround, rightGround);
+        const platformTop = p.y;
+        const platformLeft = p.x;
+        const platformRight = p.x + p.width;
 
-    const playerBottom = player.y + player.height;
-    const prevBottom = player.prevY + player.height;
-
-    // Проверяем, что игрок ПАДАЛ СВЕРХУ
-    if (
-        player.vy >= 0 &&
-        prevBottom <= ground &&
-        playerBottom >= ground
-    ) {
-        player.y = ground - player.height;
-        player.vy = 0;
-        player.onGround = true;
-    }
-
-    // ===== КОЛЛИЗИИ С ПЛАТФОРМАМИ =====
-    if (window.level1 && level1.platforms) {
-        for (const p of level1.platforms) {
-            p.checkCollision(player);
+        if (
+            player.vy >= 0 &&
+            prevBottom <= platformTop &&
+            playerBottom >= platformTop &&
+            player.x + player.width > platformLeft &&
+            player.x < platformRight
+        ) {
+            player.y = platformTop - player.height;
+            player.vy = 0;
+            player.onGround = true;
         }
     }
 
-    // ===== ПАДЕНИЕ В БЕЗДНУ =====
-    if (player.y - camera.y > canvas.height + 300) {
+    // ===== НИЖНИЙ ПРЕДЕЛ МИРА =====
+    const bottomLimit = world.height + 200; // дно мира
+    if (player.y > bottomLimit) {
+        player.y = bottomLimit;
+        player.vy = 0;
         gameOver = "fail";
+        player.moveLeft = false;
+        player.moveRight = false;
     }
 }
 

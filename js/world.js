@@ -3,52 +3,63 @@ const world = {
     width: 3000,
     height: 2000,
 
-    groundY: 1500, // ← ВОЗВРАЩАЕМ, но уже правильно
+    groundY: 1500, // базовый уровень земли
 
+    groundPlatforms: [],
+
+    // возвращает базовую линию земли
     getGroundBase() {
         return this.groundY;
     },
 
-    groundHeight(x) {
+    // генерируем «физическую» землю как платформы
+    generateGround() {
+        console.log("GENERATE GROUND CALLED"); // ← логируем факт вызова
+        
+        const base = this.getGroundBase(); // ← объявляем ПЕРЕД использованием
+        console.log("GROUND Y:", base);    // ← теперь безопасно логировать
 
-        const base = this.getGroundBase();
+        this.groundPlatforms = [];
 
-        // ===== ЯМА =====
-        if (x > 800 && x < 1200) {
-            return base + 1000; // "дыра вниз"
-        }
+        // Левая платформа (до первой ямы)
+        this.groundPlatforms.push(
+            new Platform(0, base, 800, 200)
+        );
 
-        return base;
+        // Средняя платформа (после первой ямы)
+        this.groundPlatforms.push(
+            new Platform(1200, base, 800, 200)
+        );
+
+        // Правая платформа (после второй ямы)
+        this.groundPlatforms.push(
+            new Platform(2200, base, 1200, 200)
+        );
     },
 
+    // рисуем визуальную землю, НЕ трогаем коллизии
     draw(ctx, camera) {
-
         ctx.fillStyle = "rgb(0,190,0)";
         ctx.beginPath();
-
-        // начинаем слева за экраном
         ctx.moveTo(-100, canvas.height);
 
         const step = 20 * getSceneScale();
 
         for (let x = -100; x < canvas.width + 100; x += step) {
-
             const worldX = x + camera.x;
 
-            // высота земли в МИРОВЫХ координатах
-            const worldY = this.groundHeight(worldX);
+            // для визуала берём базовую линию
+            const worldY = this.getGroundBase();
 
-            // перевод в экран
             const screenY = worldY - camera.y;
-
             ctx.lineTo(x, screenY);
-
         }
 
         ctx.lineTo(canvas.width + 100, canvas.height);
         ctx.closePath();
         ctx.fill();
-
     }
 
 };
+
+window.world = world; // экспортируем для доступа из других файлов

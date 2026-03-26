@@ -6,7 +6,6 @@ if (!canvas) {
 
 const ctx = canvas.getContext("2d");
 
-
 // ===============================
 // Масштаб сцены
 // ===============================
@@ -26,7 +25,6 @@ function getSceneScale() {
     return sceneScale;
 }
 
-
 // ===============================
 // Пересчёт размеров canvas
 // ===============================
@@ -41,7 +39,6 @@ function resize() {
 
 }
 
-
 // ===============================
 // Полный перерасчёт сцены
 // ===============================
@@ -50,44 +47,48 @@ function recalcScene() {
     resize();
     updateSceneScale();
 
-    if (typeof sky !== "undefined" && sky.generate) {
-        sky.generate();
+    // ===== защита от раннего вызова =====
+    if (!window.clearLayer || !window.addToLayer) {
+        console.warn("Layers not ready yet");
+        return;
     }
 
-    if (typeof mountains !== "undefined" && mountains.generate) {
-        mountains.generate();
-    }
+    clearLayer("world");
 
+    // ===== УРОВЕНЬ =====
     if (window.level1 && level1.generate) {
-
-        clearLayer("world");
-        addToLayer("world", world);
 
         level1.generate();
 
         for (const p of level1.platforms) {
             addToLayer("world", p);
         }
-
     }
 
+    console.log("world:", window.world);
+    console.log("generateGround:", window.world?.generateGround);
+    // ===== ЗЕМЛЯ =====
+    if (window.world && world.generateGround) {
+
+        world.generateGround();
+
+        console.log("GROUND:", world.groundPlatforms);
+
+        for (const p of world.groundPlatforms) {
+            addToLayer("world", p);
+        }
+    }
+
+    // ===== ИГРОК =====
     if (window.player) {
         player.y = world.getGroundBase() - player.height;
     }
-
 }
-
-
-// первый запуск
-recalcScene();
 
 // ===============================
 // События изменения размера
 // ===============================
-
-
 window.addEventListener("resize", recalcScene);
-
 // мобильные браузеры иногда обновляют viewport
 // только спустя время после поворота
 window.addEventListener("orientationchange", () => {

@@ -47,23 +47,22 @@ function recalcScene() {
     clearLayer("world");
 
     // ===== УРОВЕНЬ =====
-    if (window.level1 && level1.generate) {
-        level1.generate(); // создаёт platforms и groundPlatforms
+    const level = window.world.currentLevel;
 
-        // ===== платформы уровня =====
-        for (const p of level1.platforms) {
+    if (level && level.generate) {
+        level.generate();
+
+        for (const p of level.platforms) {
             addToLayer("world", p);
         }
 
-        // ===== земля =====
-        for (const p of level1.groundPlatforms) {
+        for (const p of level.groundPlatforms) {
             addToLayer("world", p);
         }
     }
 
-    // ===== ИГРОК =====
-    if (window.player) {
-        player.y = level1.getGroundBase() - player.height;
+    if (window.player && level) {
+        player.y = level.getGroundBase() - player.height;
     }
 }
 

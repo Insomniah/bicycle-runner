@@ -6,18 +6,20 @@ window.camera = {
 
     update: function () {
 
-        if (!window.player || !window.level1) return;
+        const level = window.world.currentLevel;
+
+        if (!window.player || !level) return;
 
         // ===== ГОРИЗОНТАЛЬ =====
         this.x = player.x - canvas.width * 0.35;
 
         if (this.x < 0) this.x = 0;
-        if (this.x > level1.width - canvas.width) {
-            this.x = level1.width - canvas.width;
+        if (this.x > level.width - canvas.width) {
+            this.x = level.width - canvas.width;
         }
 
         const desiredGround = canvas.height * 0.75;
-        const groundY = level1.getGroundBase();
+        const groundY = level.getGroundBase();
         const minCameraY = groundY - desiredGround;
 
         // ===== ПЕРВЫЙ КАДР =====

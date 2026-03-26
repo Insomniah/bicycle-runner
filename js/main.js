@@ -55,12 +55,10 @@ function gameLoop(time) {
 
             setTimeout(() => {
                 console.log("Switching to level2...");
-
                 // переключаем текущий уровень
-                world.currentLevel = level2;
-                level2.generate();
-                initPlayerPosition();
-                camera.initialized = false;
+                world.setLevel(level2);
+                // ПЕРЕСТРОИТЬ СЦЕНУ
+                recalcScene();
 
                 gameOver = false;
                 nextLevelQueued = false;
@@ -88,31 +86,6 @@ function drawPlayer(ctx, camera) {
 }
 
 // ===============================
-// Debug-информация
-// ===============================
-function drawDebug() {
-    ctx.fillStyle = "white";
-    ctx.font = "14px monospace";
-    ctx.textAlign = "left";
-
-    const level = world.currentLevel;
-
-    let lines = [
-        `PLAYER: x=${player.x.toFixed(1)}, y=${player.y.toFixed(1)}, vy=${player.vy.toFixed(2)}, onGround=${player.onGround}`,
-        `MOVE: left=${player.moveLeft}, right=${player.moveRight}, auto=${player.autoMove}`,
-        `PLATFORMS: level=${level.platforms.length}, ground=${level.groundPlatforms.length}`,
-        `LEVEL: ${level ? "№" + level.number + " w=" + level.width + ", h=" + level.height : "none"}`,
-        `CAMERA: x=${camera.x.toFixed(1)}, y=${camera.y.toFixed(1)}`,
-        `GAME: ${gameOver || "running"}`,
-        `STATE: isPlaying=${gameOver === false}, gameOver=${gameOver}`
-    ];
-
-    lines.forEach((line, i) => {
-        ctx.fillText(line, 10, 20 + i * 18);
-    });
-}
-
-// ===============================
 // Экран окончания игры
 // ===============================
 function drawGameOver(text) {
@@ -130,3 +103,24 @@ function drawGameOver(text) {
 // Старт цикла
 // ===============================
 requestAnimationFrame(gameLoop);
+
+// ===============================
+// Debug-информация
+// ===============================
+function drawDebug() {
+    ctx.fillStyle = "white";
+    ctx.font = "14px monospace";
+    ctx.textAlign = "left";
+
+    const level = world.currentLevel;
+
+    let lines = [
+        `PLAYER: x=${player.x.toFixed(1)}, y=${player.y.toFixed(1)}, vy=${player.vy.toFixed(2)}, onGround=${player.onGround}`,
+        `LEVEL: ${level ? "№" + level.number + " w=" + level.width + ", h=" + level.height : "none"}`,
+        `GAME: ${gameOver || "running"}`
+    ];
+
+    lines.forEach((line, i) => {
+        ctx.fillText(line, 10, 20 + i * 18);
+    });
+}

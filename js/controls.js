@@ -145,3 +145,13 @@ function drawUI() {
 
     ctx.restore();
 }
+
+// ===============================
+// Restart button (UI)
+// ===============================
+const restartBtn = document.getElementById("restart-button");
+
+restartBtn.addEventListener("click", () => {
+    gameOverUI.hide();
+    restartLevel();
+});

@@ -24,8 +24,38 @@ function updateRotateNotice() {
     }
 }
 
+
 // проверка сразу после запуска
 updateRotateNotice();
+
+// ===============================
+// Game Over UI
+// ===============================
+window.gameOverUI = {
+    root: null,
+    text: null,
+    button: null,
+
+    init() {
+        this.root = document.getElementById("game-over");
+        this.text = document.getElementById("game-over-text");
+        this.button = document.getElementById("restart-button");
+    },
+
+    show(isComplete) {
+        if (!this.root) return;
+
+        this.text.textContent = isComplete ? "Stage Complete" : "Game Over";
+        this.button.style.display = isComplete ? "none" : "inline-block";
+
+        this.root.classList.remove("hidden");
+    },
+
+    hide() {
+        if (!this.root) return;
+        this.root.classList.add("hidden");
+    }
+};
 
 // проверка при изменении размера или повороте
 window.addEventListener("resize", updateRotateNotice);

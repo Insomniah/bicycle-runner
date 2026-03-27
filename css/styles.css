@@ -35,3 +35,33 @@ body, html {
     text-align: center;
     z-index: 9999;
 }
+
+#game-over {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0,0,0,0.7);
+    z-index: 9999;
+}
+
+#game-over.hidden {
+    display: none;
+}
+
+#game-over-content {
+    text-align: center;
+}
+
+#game-over-text {
+    color: white;
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+#restart-button {
+    font-size: 24px;
+    padding: 10px 20px;
+    cursor: pointer;
+}

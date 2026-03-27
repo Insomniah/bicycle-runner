@@ -37,6 +37,7 @@ body, html {
 }
 
 #game-over {
+    height: 100dvh;
     position: fixed;
     inset: 0;
     display: flex;

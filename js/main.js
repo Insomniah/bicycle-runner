@@ -42,18 +42,22 @@ let restartButton = {
 };
 
 function gameLoop(time) {
+    // вычисляем dt
     if (!gameLoop.lastTime) gameLoop.lastTime = time;
     const dt = (time - gameLoop.lastTime) / 1000;
     gameLoop.lastTime = time;
 
+    // очищаем экран
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // обновляем камеру и игрока
     camera.update();
     window.updatePlayer(dt);
 
-    // обновляем фон и мир
+    // обновляем мир
     world.update();
 
+    // отрисовка слоёв и игрока
     drawLayers(ctx, camera);
     drawPlayer(ctx, camera);
     drawUI();
@@ -63,25 +67,34 @@ function gameLoop(time) {
     // Проверка конца уровня / игры
     // ===============================
     if (gameOver) {
+        // показываем UI через gameOverUI
         gameOverUI.show(gameOver === "complete");
 
+        // если уровень завершён и ещё не запущена смена уровня
         if (gameOver === "complete" && !nextLevelQueued) {
             nextLevelQueued = true;
+
             setTimeout(() => {
+                console.log("Switching to level2...");
+                
+                // смена уровня
                 world.setLevel(level2);
+
+                // пересоздаём объекты текущего уровня
                 rocks.generate();
                 recalcScene();
                 initPlayerPosition();
+
+                // сброс состояния игры
                 gameOver = false;
                 nextLevelQueued = false;
+
                 gameOverUI.hide();
             }, 2000);
         }
-
-        requestAnimationFrame(gameLoop);
-        return;
     }
 
+    // один вызов анимации в конце функции
     requestAnimationFrame(gameLoop);
 }
 
@@ -129,58 +142,25 @@ function drawPlayer(ctx, camera) {
     ctx.restore();
 }
 
-// ===============================
-// Экран окончания игры
-// ===============================
-// function drawGameOver(text) {
-//     ctx.fillStyle = "rgba(0,0,0,0.7)";
-//     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-//     ctx.fillStyle = "white";
-//     ctx.font = "48px Arial";
-//     ctx.textAlign = "center";
-
-//     ctx.fillText(text, canvas.width / 2, canvas.height / 2);
-
-//     // ===== КНОПКА РЕСТАРТ =====
-//     if (gameOver === "fail") {
-//         restartButton.w = 200;
-//         restartButton.h = 60;
-//         restartButton.x = canvas.width / 2 - restartButton.w / 2;
-//         restartButton.y = canvas.height / 2 + 60;
-//         restartButton.visible = true;
-
-//         ctx.fillStyle = "#222";
-//         ctx.fillRect(restartButton.x, restartButton.y, restartButton.w, restartButton.h);
-
-//         ctx.fillStyle = "white";
-//         ctx.font = "24px Arial";
-//         ctx.fillText("RESTART", canvas.width / 2, restartButton.y + 40);
-//     } else {
-//         restartButton.visible = false;
-//     }
-// }
-// 
 function restartLevel() {
-    // переставляем игрока и пересобираем сцену
     if (!world.currentLevel) return;
 
-    // пересоздаём платформы и объекты текущего уровня
+    // пересоздаём объекты текущего уровня
     world.currentLevel.generate();
-
-    // пересоздаём ближние скалы
     rocks.generate();
 
-    // пересобираем слои и объекты на сцене
+    // пересобираем слои и объекты сцены
     recalcScene();
 
-    // ставим игрока на землю после генерации уровня
+    // ставим игрока на стартовую позицию
     initPlayerPosition();
 
     // сбрасываем состояние игры
     gameOver = false;
-}
 
+    // прячем Game Over UI
+    gameOverUI.hide();
+}
 // ===============================
 // Старт цикла
 // ===============================

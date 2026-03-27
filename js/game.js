@@ -57,6 +57,15 @@ window.gameOverUI = {
     }
 };
 
+function setRealVH() {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+
+setRealVH();
+window.addEventListener('resize', setRealVH);// реальные размеры окна браузера для корректного отображения на мобильных устройствах
+
 // проверка при изменении размера или повороте
 window.addEventListener("resize", updateRotateNotice);
 window.addEventListener("orientationchange", updateRotateNotice);

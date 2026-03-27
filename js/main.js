@@ -32,6 +32,15 @@ initPlayerPosition(); // ставим игрока на землю после г
 let lastTime = performance.now();
 let nextLevelQueued = false;
 
+// Кнопка "Restart" (появляется при Game Over)
+let restartButton = {
+    x: 0,
+    y: 0,
+    w: 200,
+    h: 60,
+    visible: false
+};
+
 function gameLoop(time) {
     if (!gameLoop.lastTime) gameLoop.lastTime = time;
     const dt = (time - gameLoop.lastTime) / 1000;
@@ -135,6 +144,44 @@ function drawGameOver(text) {
     ctx.textAlign = "center";
 
     ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+    // ===== КНОПКА РЕСТАРТ =====
+    if (gameOver === "fail") {
+        restartButton.w = 200;
+        restartButton.h = 60;
+        restartButton.x = canvas.width / 2 - restartButton.w / 2;
+        restartButton.y = canvas.height / 2 + 60;
+        restartButton.visible = true;
+
+        ctx.fillStyle = "#222";
+        ctx.fillRect(restartButton.x, restartButton.y, restartButton.w, restartButton.h);
+
+        ctx.fillStyle = "white";
+        ctx.font = "24px Arial";
+        ctx.fillText("RESTART", canvas.width / 2, restartButton.y + 40);
+    } else {
+        restartButton.visible = false;
+    }
+}
+// 
+function restartLevel() {
+    // переставляем игрока и пересобираем сцену
+    if (!world.currentLevel) return;
+
+    // пересоздаём платформы и объекты текущего уровня
+    world.currentLevel.generate();
+
+    // пересоздаём ближние скалы
+    rocks.generate();
+
+    // пересобираем слои и объекты на сцене
+    recalcScene();
+
+    // ставим игрока на землю после генерации уровня
+    initPlayerPosition();
+
+    // сбрасываем состояние игры
+    gameOver = false;
 }
 
 // ===============================

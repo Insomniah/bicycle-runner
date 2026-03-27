@@ -74,6 +74,25 @@ function handleTouch(e) {
     }
 }
 
+canvas.addEventListener("touchstart", (e) => {
+    if (!restartButton.visible) return;
+
+    const touch = e.touches[0];
+    if (!touch) return;
+
+    const pos = getGameCoords(touch.clientX, touch.clientY);
+
+    if (
+        pos.x >= restartButton.x &&
+        pos.x <= restartButton.x + restartButton.w &&
+        pos.y >= restartButton.y &&
+        pos.y <= restartButton.y + restartButton.h
+    ) {
+        e.preventDefault(); // чтобы не срабатывал прыжок и движение
+        restartLevel();
+    }
+});
+
 // ПК управление
 window.addEventListener("keydown", (e) => {
 
@@ -86,6 +105,23 @@ window.addEventListener("keyup", (e) => {
 
     if (e.key === "ArrowLeft" || e.key === "a") player.moveLeft = false;
     if (e.key === "ArrowRight" || e.key === "d") player.moveRight = false;
+});
+
+canvas.addEventListener("click", (e) => {
+    if (!restartButton.visible) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    if (
+        x >= restartButton.x &&
+        x <= restartButton.x + restartButton.w &&
+        y >= restartButton.y &&
+        y <= restartButton.y + restartButton.h
+    ) {
+        restartLevel();
+    }
 });
 
 

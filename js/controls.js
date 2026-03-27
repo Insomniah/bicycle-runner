@@ -18,45 +18,60 @@ function getGameCoords(clientX, clientY) {
 if (input.isMobile) {
     canvas.addEventListener("touchstart", handleTouch, { passive: false });
     canvas.addEventListener("touchmove", handleTouch, { passive: false });
-    canvas.addEventListener("touchend", () => {
-        player.moveLeft = false;
-        player.moveRight = false;
+    canvas.addEventListener("touchend", (e) => {
+        if (e.touches.length === 0) {
+            player.moveLeft = false;
+            player.moveRight = false;
+        } else {
+            handleTouch(e); // пересчитать состояние по оставшимся пальцам
+        }
     });
 }
 
 function handleTouch(e) {
     e.preventDefault();
-    const touch = e.touches[0];
-    if (!touch) return;
 
-    const pos = getGameCoords(touch.clientX, touch.clientY);
+    let moveLeft = false;
+    let moveRight = false;
+    let jumpPressed = false;
 
-    // левая зона движения
-    const moveZoneX = 150;
-    const moveZoneY = canvas.height - 150;
+    for (const touch of e.touches) {
+        const pos = getGameCoords(touch.clientX, touch.clientY);
 
-    const dxMove = pos.x - moveZoneX;
-    const dyMove = pos.y - moveZoneY;
-    const distanceMove = Math.sqrt(dxMove * dxMove + dyMove * dyMove);
+        // ===== ЗОНА ДВИЖЕНИЯ =====
+        const moveZoneX = 150;
+        const moveZoneY = canvas.height - 150;
 
-    if (distanceMove < 100) {
-        if (dxMove < -20) {
-            player.moveLeft = true;
-            player.moveRight = false;
-        } else if (dxMove > 20) {
-            player.moveRight = true;
-            player.moveLeft = false;
+        const dxMove = pos.x - moveZoneX;
+        const dyMove = pos.y - moveZoneY;
+        const distanceMove = Math.sqrt(dxMove * dxMove + dyMove * dyMove);
+
+        if (distanceMove < 100) {
+            if (dxMove < -20) moveLeft = true;
+            if (dxMove > 20) moveRight = true;
+        }
+
+        // ===== ЗОНА ПРЫЖКА =====
+        const jumpZoneX = canvas.width - 150;
+        const jumpZoneY = canvas.height - 150;
+
+        const dxJump = pos.x - jumpZoneX;
+        const dyJump = pos.y - jumpZoneY;
+        const distanceJump = Math.sqrt(dxJump * dxJump + dyJump * dyJump);
+
+        if (distanceJump < 80) {
+            jumpPressed = true;
         }
     }
 
-    // правая зона прыжка
-    const jumpZoneX = canvas.width - 150;
-    const jumpZoneY = canvas.height - 150;
-    const dxJump = pos.x - jumpZoneX;
-    const dyJump = pos.y - jumpZoneY;
-    const distanceJump = Math.sqrt(dxJump * dxJump + dyJump * dyJump);
+    // применяем движение
+    player.moveLeft = moveLeft;
+    player.moveRight = moveRight;
 
-    if (distanceJump < 80) player.jump();
+    // прыжок (без дабл-джампа)
+    if (jumpPressed && player.onGround) {
+        player.jump();
+    }
 }
 
 // ПК управление

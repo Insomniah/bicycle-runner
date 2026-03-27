@@ -32,40 +32,46 @@ updateRotateNotice();
 // Game Over UI
 // ===============================
 window.gameOverUI = {
-    root: null,
-    text: null,
-    button: null,
+  root: null,
+  text: null,
+  button: null,
 
-    init() {
-        this.root = document.getElementById("game-over");
-        this.text = document.getElementById("game-over-text");
-        this.button = document.getElementById("restart-button");
-    },
+  init() {
+    this.root = document.getElementById("game-over");
+    this.text = document.getElementById("game-over-text");
+    this.button = document.getElementById("restart-button");
 
-    show(isComplete) {
-        if (!this.root) return;
+    // Обработчик кнопки
+    this.button.addEventListener("click", () => {
+      restartLevel();
+      this.hide();
+    });
+  },
 
-        this.text.textContent = isComplete ? "Stage Complete" : "Game Over";
-        this.button.style.display = isComplete ? "none" : "inline-block";
+  show(isComplete) {
+    if (!this.root) return;
+    this.text.textContent = isComplete ? "Stage Complete" : "Game Over";
+    this.button.style.display = isComplete ? "none" : "inline-block";
+    this.root.classList.remove("hidden");
+  },
 
-        this.root.classList.remove("hidden");
-    },
-
-    hide() {
-        if (!this.root) return;
-        this.root.classList.add("hidden");
-    }
+  hide() {
+    if (!this.root) return;
+    this.root.classList.add("hidden");
+  }
 };
 
+// реальные размеры окна браузера на мобильных устройствах для правильного масштабирования
 function setRealVH() {
-    const vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
 }
-
-
 setRealVH();
-window.addEventListener('resize', setRealVH);// реальные размеры окна браузера для корректного отображения на мобильных устройствах
+window.addEventListener('resize', setRealVH);
+window.addEventListener('orientationchange', setRealVH);
 
 // проверка при изменении размера или повороте
 window.addEventListener("resize", updateRotateNotice);
 window.addEventListener("orientationchange", updateRotateNotice);
+
+gameOverUI.init();

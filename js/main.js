@@ -63,19 +63,18 @@ function gameLoop(time) {
     // Проверка конца уровня / игры
     // ===============================
     if (gameOver) {
-        drawGameOver(gameOver === "complete" ? "Stage complete" : "Game Over");
+        gameOverUI.show(gameOver === "complete");
 
         if (gameOver === "complete" && !nextLevelQueued) {
             nextLevelQueued = true;
-
             setTimeout(() => {
-                console.log("Switching to level2...");
                 world.setLevel(level2);
                 rocks.generate();
                 recalcScene();
-
+                initPlayerPosition();
                 gameOver = false;
                 nextLevelQueued = false;
+                gameOverUI.hide();
             }, 2000);
         }
 
@@ -133,34 +132,34 @@ function drawPlayer(ctx, camera) {
 // ===============================
 // Экран окончания игры
 // ===============================
-function drawGameOver(text) {
-    ctx.fillStyle = "rgba(0,0,0,0.7)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+// function drawGameOver(text) {
+//     ctx.fillStyle = "rgba(0,0,0,0.7)";
+//     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "white";
-    ctx.font = "48px Arial";
-    ctx.textAlign = "center";
+//     ctx.fillStyle = "white";
+//     ctx.font = "48px Arial";
+//     ctx.textAlign = "center";
 
-    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+//     ctx.fillText(text, canvas.width / 2, canvas.height / 2);
 
-    // ===== КНОПКА РЕСТАРТ =====
-    if (gameOver === "fail") {
-        restartButton.w = 200;
-        restartButton.h = 60;
-        restartButton.x = canvas.width / 2 - restartButton.w / 2;
-        restartButton.y = canvas.height / 2 + 60;
-        restartButton.visible = true;
+//     // ===== КНОПКА РЕСТАРТ =====
+//     if (gameOver === "fail") {
+//         restartButton.w = 200;
+//         restartButton.h = 60;
+//         restartButton.x = canvas.width / 2 - restartButton.w / 2;
+//         restartButton.y = canvas.height / 2 + 60;
+//         restartButton.visible = true;
 
-        ctx.fillStyle = "#222";
-        ctx.fillRect(restartButton.x, restartButton.y, restartButton.w, restartButton.h);
+//         ctx.fillStyle = "#222";
+//         ctx.fillRect(restartButton.x, restartButton.y, restartButton.w, restartButton.h);
 
-        ctx.fillStyle = "white";
-        ctx.font = "24px Arial";
-        ctx.fillText("RESTART", canvas.width / 2, restartButton.y + 40);
-    } else {
-        restartButton.visible = false;
-    }
-}
+//         ctx.fillStyle = "white";
+//         ctx.font = "24px Arial";
+//         ctx.fillText("RESTART", canvas.width / 2, restartButton.y + 40);
+//     } else {
+//         restartButton.visible = false;
+//     }
+// }
 // 
 function restartLevel() {
     // переставляем игрока и пересобираем сцену

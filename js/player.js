@@ -5,8 +5,8 @@ window.gameOver = false;        // false | "complete" | "fail"
 window.player = {
     x: 200,
     y: 0,               // будет установлен после генерации уровня
-    width: 50,
-    height: 50,
+    width: 48,
+    height: 48,
     speed: 6,
     vy: 0,
     gravity: 0.3,
@@ -16,6 +16,15 @@ window.player = {
     moveRight: false,
     autoMove: false,
     prevY: 0,
+    sprite: null,
+
+    frameX: 0,
+    frameY: 0,
+    frameWidth: 16,
+    frameHeight: 16,
+    frameCount: 17, // количество кадров в спрайте
+    frameTimer: 0,
+    frameInterval: 0.08, // скорость анимации
 
     jump() {
         if (this.onGround && gameOver === false) {
@@ -24,6 +33,9 @@ window.player = {
         }
     }
 };
+
+player.sprite = new Image();
+player.sprite.src = "assets/player/player.png";
 
 // ===============================
 // Инициализация позиции игрока
@@ -118,6 +130,18 @@ window.updatePlayer = function(dt) {
         player.moveLeft = false;
         player.moveRight = false;
         console.log("Player fell off level, gameOver =", gameOver);
+    }
+
+        // ===== АНИМАЦИЯ =====
+    player.frameTimer += dt;
+
+    if (player.frameTimer > player.frameInterval) {
+        player.frameTimer = 0;
+
+        player.frameX++;
+        if (player.frameX >= player.frameCount) {
+            player.frameX = 0;
+        }
     }
 };
 

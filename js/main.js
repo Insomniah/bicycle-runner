@@ -65,8 +65,6 @@ function gameLoop(time) {
                 world.setLevel(level2);
                 // ОБЯЗАТЕЛЬНО пересоздаём rocks под новый уровень
                 rocks.generate();
-                
-
                 recalcScene();
 
                 gameOver = false;
@@ -85,13 +83,44 @@ function gameLoop(time) {
 // Отрисовка игрока
 // ===============================
 function drawPlayer(ctx, camera) {
-    ctx.fillStyle = "lime";
-    ctx.fillRect(
-        player.x - camera.x,
-        player.y - camera.y,
-        player.width,
-        player.height
-    );
+    if (!player.sprite) return;
+
+    ctx.save();
+
+    const drawX = player.x - camera.x;
+    const drawY = player.y - camera.y;
+
+    // отражение влево
+    if (player.moveLeft) {
+        ctx.scale(-1, 1);
+        ctx.drawImage(
+            player.sprite,
+            player.frameX * player.frameWidth,
+            0,
+            player.frameWidth,
+            player.frameHeight,
+
+            -drawX - player.width,
+            drawY,
+            player.width,
+            player.height
+        );
+    } else {
+        ctx.drawImage(
+            player.sprite,
+            player.frameX * player.frameWidth,
+            0,
+            player.frameWidth,
+            player.frameHeight,
+
+            drawX,
+            drawY,
+            player.width,
+            player.height
+        );
+    }
+
+    ctx.restore();
 }
 
 // ===============================
@@ -125,7 +154,7 @@ function drawDebug() {
 
     let lines = [
         `PLAYER: x=${player.x.toFixed(1)}, y=${player.y.toFixed(1)}, vy=${player.vy.toFixed(2)}, onGround=${player.onGround}`,
-        `LEVEL: ${level ? "№" + level.number + " w=" + level.width + ", h=" + level.height : "none"}`,
+        `LEVEL: ${level ? level.number + " Size: " + level.width + " X " + level.height : "none"}`,
         `GAME: ${gameOver || "running"}`
     ];
 

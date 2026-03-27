@@ -45,8 +45,8 @@ const rocks = {
         const level = world.currentLevel;
         if (!level || !level.groundPlatforms) return;
 
-        const margin = 10;
-
+        const margin = 10; // отступ от краёв платформы, чтобы камни не были "на самом краю"
+        // для каждой платформы генерируем несколько камней
         for (const platform of level.groundPlatforms) {
 
             for (let i = 0; i < 4; i++) {
@@ -72,7 +72,6 @@ const rocks = {
                 });
             }
         }
-        console.log("ROCKS GEN LEVEL:", world.currentLevel.number);
     },
 
     draw(ctx, camera) {

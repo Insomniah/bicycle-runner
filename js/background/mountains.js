@@ -1,66 +1,51 @@
-// mountains.js — дальний фон, апскейленные "горы"
+// background/mountains.js
 
 const mountains = {
 
-    list: [],
-
-    // параллакс слоя
-    parallax: 0.15,
-
-    // типы скал (будем апскейлить)
-    rockTypes: [
-        "assets/rocks/middle_lane_rock1_1.png",
-        "assets/rocks/middle_lane_rock1_2.png",
-        "assets/rocks/middle_lane_rock1_3.png"
-    ],
-
-    images: [],
+    img: null,
+    loaded: false,
 
     generate() {
-        this.list = [];
-        this.images = [];
+        this.img = new Image();
+        this.img.src = "assets/mountains/mountains-bg.png";
 
-        // загружаем картинки
-        for (const src of this.rockTypes) {
-            const img = new Image();
-            img.src = src;
-            this.images.push(img);
-        }
+        this.loaded = false;
 
-        let x = 300;
-        const level = world.currentLevel;
+        this.img.onload = () => {
+            this.loaded = true;
+        };
+    },
 
-        while (x < level.width) {
-            // случайная картинка
-            const img = this.images[Math.floor(Math.random() * this.images.length)];
-
-            this.list.push({
-                x: x,
-                img: img,
-                scale: 2 + Math.random() * 0.5 // апскейлим в ~3 раза
-            });
-
-            // расстояние до следующей "горы"
-            const spacing = 250 + Math.random() * 100;
-            x += spacing;
-        }
+    update() {
+        // ничего не нужно
     },
 
     draw(ctx, camera) {
+        if (!this.loaded || !this.img) return;
 
-        for (const r of this.list) {
-            const x = r.x - camera.x * this.parallax;
+        const level = world.currentLevel;
+        if (!level) return;
 
-            // оптимизация: не рисуем вне экрана
-            if (x < -400 || x > canvas.width + 400) continue;
+        const imgW = this.img.width;
+        const imgH = this.img.height;
 
-            const w = r.img.width * r.scale;
-            const h = r.img.height * r.scale;
+        // привязка к "земле"
+        const groundY = level.getGroundBase();
+        const buryFactor = 0.4; // 40% утапливаем вниз
+        const y = groundY - imgH * (1 - buryFactor) - camera.y; // учитываем камеру по вертикали
 
-            // привязка к низу экрана
-            const y = canvas.height - h;
+        // начинаем рисовать чуть левее камеры
+        let startX = Math.floor(camera.x / imgW) * imgW;
 
-            ctx.drawImage(r.img, x, y, w, h);
+        // тайлим до правого края экрана
+        for (let x = startX; x < camera.x + canvas.width + imgW; x += imgW) {
+            ctx.drawImage(
+                this.img,
+                x - camera.x,
+                y,
+                imgW,
+                imgH
+            );
         }
     }
 

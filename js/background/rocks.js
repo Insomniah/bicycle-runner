@@ -1,75 +1,93 @@
+// background/rocks.js
+
 const rocks = {
 
     list: [],
 
     rockTypes: [
-        { src: "assets/rocks/middle_lane_rock1_1.png", sink: 22 },
-        { src: "assets/rocks/middle_lane_rock1_2.png", sink: 12 },
-        { src: "assets/rocks/middle_lane_rock1_3.png", sink: 6 }
+        { src: "assets/rocks/middle_lane_rock1_1.png" },
+        { src: "assets/rocks/middle_lane_rock1_2.png" },
+        { src: "assets/rocks/middle_lane_rock1_3.png" },
+        { src: "assets/rocks/middle_lane_rock1_4.png" },
+        { src: "assets/rocks/middle_lane_rock1_5.png" }
     ],
 
     images: [],
+    loaded: false,
 
     generate() {
         this.list = [];
-        this.images = [];
 
-        const level = world.currentLevel;
-        if (!level) return;
+        // если ещё не загрузили картинки — грузим один раз
+        if (!this.images.length) {
+            let loadedCount = 0;
 
-        // загрузка картинок
-        for (const type of this.rockTypes) {
-            const img = new Image();
-            img.src = type.src;
-            this.images.push({ img: img, sink: type.sink });
+            for (const type of this.rockTypes) {
+                const img = new Image();
+                img.src = type.src;
+
+                img.onload = () => {
+                    loadedCount++;
+                    if (loadedCount === this.rockTypes.length) {
+                        this.loaded = true;
+                        this.generate(); // повторный запуск после загрузки
+                    }
+                };
+
+                this.images.push(img);
+            }
+
+            return; // ждём загрузку
         }
 
-        // ПРОХОД ПО ЗЕМЛЕ
-        for (const ground of level.groundPlatforms) {
+        if (!this.loaded) return;
 
-            let x = ground.x;
+        const level = world.currentLevel;
+        if (!level || !level.groundPlatforms) return;
 
-            while (x < ground.x + ground.width) {
+        const margin = 10;
 
-                // случайный пропуск
-                if (Math.random() < 0.4) {
-                    x += 100;
-                    continue;
-                }
+        for (const platform of level.groundPlatforms) {
 
-                const type = this.images[Math.floor(Math.random() * this.images.length)];
+            for (let i = 0; i < 4; i++) {
 
-                const scale = 0.8 + Math.random() * 0.4;
+                const img = this.images[Math.floor(Math.random() * this.images.length)];
+
+                const w = img.width;
+                const h = img.height;
+
+                // ВАЖНО: учитываем ОБА края
+                const minX = platform.x + margin;
+                const maxX = platform.x + platform.width - w - margin;
+
+                if (maxX <= minX) continue;
+
+                const x = minX + Math.random() * (maxX - minX);
+                const y = platform.y - h;
 
                 this.list.push({
-                    x: x,
-                    baseY: ground.y, // 👈 ключевая привязка
-                    img: type.img,
-                    sink: type.sink,
-                    scale: scale
+                    x,
+                    y,
+                    img
                 });
-
-                x += 120 + Math.random() * 80;
             }
         }
     },
 
     draw(ctx, camera) {
-
         for (const r of this.list) {
 
-            const w = r.img.width * r.scale;
-            const h = r.img.height * r.scale;
-
             const x = r.x - camera.x;
-            const y = r.baseY - h + r.sink - camera.y;
+            const y = r.y - camera.y;
 
-            // оптимизация
-            if (x < -200 || x > canvas.width + 200) continue;
+            if (x + r.img.width < 0 || x > canvas.width) continue;
 
-            ctx.drawImage(r.img, x, y, w, h);
+            ctx.drawImage(r.img, x, y);
         }
-    }
+    },
+
+    update() {}
+
 };
 
 window.rocks = rocks;

@@ -72,6 +72,7 @@ const rocks = {
                 });
             }
         }
+        console.log("ROCKS GEN LEVEL:", world.currentLevel.number);
     },
 
     draw(ctx, camera) {

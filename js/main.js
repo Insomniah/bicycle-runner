@@ -63,7 +63,10 @@ function gameLoop(time) {
                 console.log("Switching to level2...");
                 // переключаем текущий уровень
                 world.setLevel(level2);
-                // ПЕРЕСТРОИТЬ СЦЕНУ
+                // ОБЯЗАТЕЛЬНО пересоздаём rocks под новый уровень
+                rocks.generate();
+                
+
                 recalcScene();
 
                 gameOver = false;

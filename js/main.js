@@ -1,31 +1,20 @@
 // ===============================
-// Инициализация уровней и мира
+// Инициализация мира и уровней
 // ===============================
-level1.generate();
-level2.generate();
-
-// ставим текущий уровень
-world.currentLevel = level1;
-
-// генерируем фоновые объекты
-sky.generate();
-mountains.generate();
-rocks.generate();
-
-// РЕГИСТРИРУЕМ В WORLD
+// Регистрируем объекты фона в мире (они будут использоваться при setLevel)
 world.sky = sky;
 world.mountains = mountains;
-
-// регистрируем слои
+// Инициализируем первый уровень (внутри вызовутся level1.generate(), sky.generate(), mountains.generate())
+world.setLevel(level1);
+// Камни генерируются отдельно, так как они не привязаны к world.setLevel
+rocks.generate();
+// Регистрируем объекты в слоях (один раз, они будут перерисовываться через свои draw методы)
 addToLayer("background", skyBackground);
 addToLayer("background", sky);
 addToLayer("background", mountains);
 addToLayer("midground", rocks);
-
-// инициализация сцены и игрока
+// Пересобираем сцену и позиционируем игрока
 recalcScene();
-initPlayerPosition(); // ставим игрока на землю после генерации уровня
-
 // ===============================
 // Игровой цикл
 // ===============================
@@ -33,58 +22,40 @@ let lastTime = performance.now();
 let nextLevelQueued = false;
 
 function gameLoop(time) {
-    // вычисляем dt
     if (!gameLoop.lastTime) gameLoop.lastTime = time;
     const dt = (time - gameLoop.lastTime) / 1000;
     gameLoop.lastTime = time;
 
-    // очищаем экран
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // обновляем камеру и игрока
     camera.update();
     window.updatePlayer(dt);
-
-    // обновляем мир
     world.update();
 
-    // отрисовка слоёв и игрока
     drawLayers(ctx, camera);
     drawPlayer(ctx, camera);
     drawUI();
     drawDebug();
 
-    // ===============================
-    // Проверка конца уровня / игры
-    // ===============================
     if (gameOver) {
-        // показываем UI через gameOverUI
         gameOverUI.show(gameOver === "complete");
 
-        // если уровень завершён и ещё не запущена смена уровня
         if (gameOver === "complete" && !nextLevelQueued) {
             nextLevelQueued = true;
 
             setTimeout(() => {
                 console.log("Switching to level2...");
-                
-                // смена уровня
                 world.setLevel(level2);
-
-                // пересоздаём объекты текущего уровня
-                rocks.generate();
+                rocks.generate();   // камни перегенерируются под новый уровень
                 recalcScene();
 
-                // сброс состояния игры
                 gameOver = false;
                 nextLevelQueued = false;
-
                 gameOverUI.hide();
             }, 2000);
         }
     }
 
-    // один вызов анимации в конце функции
     requestAnimationFrame(gameLoop);
 }
 
@@ -99,7 +70,6 @@ function drawPlayer(ctx, camera) {
     const drawX = player.x - camera.x;
     const drawY = player.y - camera.y;
 
-    // отражение влево
     if (player.moveLeft) {
         ctx.scale(-1, 1);
         ctx.drawImage(
@@ -108,7 +78,6 @@ function drawPlayer(ctx, camera) {
             0,
             player.frameWidth,
             player.frameHeight,
-
             -drawX - player.width,
             drawY,
             player.width,
@@ -121,7 +90,6 @@ function drawPlayer(ctx, camera) {
             0,
             player.frameWidth,
             player.frameHeight,
-
             drawX,
             drawY,
             player.width,
@@ -140,7 +108,6 @@ function restartLevel() {
     recalcScene();
     initPlayerPosition();
 
-    // Сброс авто-движения
     player.autoMove = false;
     player.moveLeft = false;
     player.moveRight = false;
@@ -148,6 +115,7 @@ function restartLevel() {
     gameOver = false;
     gameOverUI.hide();
 }
+
 // ===============================
 // Старт цикла
 // ===============================

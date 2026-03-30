@@ -34,10 +34,8 @@ const sky = {
             // Ширина уровня с запасом, чтобы облака не исчезали у края
             const limit = level.width + 300;
             if (cloud.x < -cloud.w) {
-                console.log("Cloud reset to right", cloud.x);
                 cloud.x = limit;
             } else if (cloud.x > limit) {
-                console.log("Cloud reset to left", cloud.x);
                 cloud.x = -cloud.w;
             }
         }

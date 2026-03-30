@@ -1,169 +1,144 @@
-PROJECT.md — Bicycle Runner
 Движок и язык
 Чистый JavaScript (ES6) + HTML5 Canvas
 
-Без фреймворков, вся логика самописная
+Без фреймворков
 
-Адаптация под мобильные устройства (тач-зоны, ориентация, viewport, --vh)
+Адаптация под мобильные устройства (тач-зоны, ориентация, viewport)
 
 Описание игры
-2D платформер-раннер. Игрок управляет велосипедистом, перемещается по уровню, прыгает по платформам и земле. Цель — добраться до правого края уровня (финиш). При касании правой границы уровень считается пройденным, и через 2 секунды автоматически загружается следующий уровень (level1 → level2). При падении вниз (за пределы уровня) — Game Over с возможностью рестарта.
+2D платформер-раннер. Игрок управляет велосипедистом, перемещается по уровню, прыгает по платформам и земле. Цель — добраться до правого края уровня. При касании правой границы уровень считается пройденным, игрок автоматически движется вправо (autoMove = true), и через 2 секунды загружается следующий уровень (level1 → level2). При падении вниз (за пределы уровня) — Game Over с возможностью рестарта.
 
-Структура проекта
+Структура проекта (актуальная)
 text
 bicycle-runner/
 ├── index.html
 ├── css/
-│   └── styles.css                 # стили: скрытие скролла, canvas на весь экран, overlay для Game Over и rotateNotice
+│   └── styles.css
 ├── js/
-│   ├── main.js                    # игровой цикл, инициализация, рестарт, debug-информация
-│   ├── game.js                    # canvas, gameOverUI, адаптация размера (resize, orientation)
-│   ├── world.js                   # глобальный объект world (управление уровнем, фоновыми объектами)
-│   ├── player.js                  # объект player, логика движения, гравитация, коллизии с платформами, анимация
-│   ├── camera.js                  # камера, след за игроком с плавностью и ограничениями
-│   ├── controls.js                # обработка клавиатуры (стрелки, A/D, пробел) и тач-зон (движение слева, прыжок справа)
+│   ├── main.js                    # игровой цикл, инициализация, рестарт, debug
+│   ├── game.js                    # canvas, gameOverUI, адаптация
+│   ├── world.js                   # глобальный объект world (управление уровнем, фоном)
+│   ├── player.js                  # объект player, логика движения, гравитация, коллизии, autoMove
+│   ├── camera.js                  # камера
+│   ├── controls.js                # клавиатура и тач-зоны (без мёртвого кода рестарта)
 │   ├── core/
-│   │   ├── canvas.js              # инициализация canvas, resize, recalcScene (пересборка слоёв мира)
-│   │   └── layers.js              # система слоёв (background, midground, world, actors, foreground, ui) с функциями addToLayer, clearLayer, drawLayers
+│   │   ├── canvas.js              # инициализация canvas, resize, recalcScene
+│   │   └── layers.js              # система слоёв
 │   ├── entities/
-│   │   ├── platform.js            # класс Platform (x, y, w, h) с методом draw и checkCollision (последний не используется)
-│   │   └── enemy.js               # (пока не используется)
+│   │   └── platform.js            # класс Platform (только конструктор, draw; checkCollision удалён)
 │   ├── background/
-│   │   ├── skybackground.js       # сплошная заливка неба (голубой)
-│   │   ├── sky.js                 # облака с ветром, параллаксом, генерацией по ширине уровня
-│   │   ├── mountains.js           # горы, тайлинг по горизонтали, привязка к земле
-│   │   └── rocks.js               # камни на земле, генерируются на groundPlatforms уровня, загрузка изображений
+│   │   ├── skybackground.js       # заливка неба
+│   │   ├── sky.js                 # облака с ветром, параллакс
+│   │   ├── mountains.js           # горы (тайлинг)
+│   │   └── rocks.js               # камни на земле
 │   └── utils/
-│       └── math.js                # (возможно, вспомогательные функции)
+│       └── math.js
 ├── levels/
-│   ├── level1.js                  # данные уровня 1: ширина, высота, groundY, platformData, groundPlatforms, метод generate()
-│   └── level2.js                  # данные уровня 2 (аналогично, но меньше платформ и ширина 2000)
+│   ├── level1.js
+│   └── level2.js
 └── assets/
     ├── player/
-    │   └── player.png             # спрайт игрока (16x16, 17 кадров)
+    │   └── player.png
     ├── mountains/
     │   └── mountains-bg.png
     └── rocks/
-        └── middle_lane_rock1_*.png
+        └── *.png
 Ключевые глобальные объекты и классы
-window.player (объект)
-Поля: x, y, width, height, speed, vy, gravity, jumpPower, onGround, moveLeft, moveRight, autoMove, prevY, sprite, анимационные поля (frameX, frameY, frameWidth, frameHeight, frameCount, frameTimer, frameInterval).
+window.player
+Поля: x, y, width, height, speed, vy, gravity, jumpPower, onGround, moveLeft, moveRight, autoMove (используется после финиша), sprite, анимационные поля.
 
-Методы: jump() (устанавливает vy = jumpPower и сбрасывает onGround).
+Методы: jump().
 
-Коллизии: реализованы в updatePlayer() (цикл по level.platforms и level.groundPlatforms), проверка падения, финиша.
+Коллизии: обрабатываются в updatePlayer() (цикл по level.platforms и level.groundPlatforms).
 
-Анимация: обновляется по таймеру, отрисовка с учётом направления (зеркалирование при moveLeft).
+Анимация: обновляется по таймеру, отрисовка с зеркалированием.
 
-window.world (объект)
-Поля: sky, mountains, clouds[], currentLevel.
+window.world
+Поля: sky, mountains, currentLevel.
 
 Методы:
 
-setLevel(level) — переключает уровень, вызывает level.generate(), инициализирует позицию игрока, сбрасывает камеру, генерирует фон.
+setLevel(level) — переключает уровень, вызывает level.generate(), инициализирует позицию игрока, сбрасывает player.autoMove, moveLeft, moveRight, сбрасывает камеру, генерирует фон, устанавливает gameOver = false.
 
 getGroundBase() — делегирует текущему уровню.
 
-update() — обновляет sky, mountains, облака.
+update() — обновляет фон (sky, mountains).
 
 draw(ctx, camera) — рисует фон.
 
-window.camera (объект)
-Поля: x, y, initialized.
+window.camera
+Горизонтальное следование с отступом 35% от левого края.
 
-Метод update():
+Вертикальное плавное следование с ограничением снизу (земля на 75% высоты экрана).
 
-Горизонталь: x = player.x - canvas.width * 0.35, ограничена границами уровня.
+window.gameOverUI
+Управляет оверлеем #game-over. Методы show(isComplete), hide(). Кнопка рестарта вешает обработчик один раз (в init()).
 
-Вертикаль: плавное следование за игроком (lerp), ограничение снизу на уровне земли (чтобы земля была на 75% высоты экрана).
+window.rocks
+Асинхронная загрузка изображений, генерация камней на groundPlatforms уровня (по 4 камня на платформу).
 
-window.gameOverUI (объект)
-Управляет элементом #game-over. Методы show(isComplete) и hide(). При рестарте вызывает restartLevel().
-
-window.rocks (объект)
-Поля: list[], rockTypes[], images[], loaded.
-
-Метод generate() — загружает изображения асинхронно, затем генерирует камни на каждой groundPlatform уровня (по 4 камня, с отступами).
-
-Метод draw(ctx, camera) — отрисовка с учётом камеры.
-
-sky и mountains (объекты)
+sky и mountains
 sky: генерация облаков по ширине уровня, движение с ветром, параллакс 0.2.
 
 mountains: тайлинг по горизонтали, привязка к земле, утапливание на 40%.
 
 Platform (класс)
-Конструктор: x, y, width, height.
+Конструктор (x, y, width, height).
 
-draw(ctx, camera) — рисует коричневый прямоугольник.
+draw(ctx, camera) — рисует прямоугольник.
 
-checkCollision(player) — не используется (коллизии обрабатываются отдельно в player.js).
+Метод checkCollision удалён (не используется, коллизии в player.js).
 
 Система слоёв
-layers.js определяет глобальный объект layers с массивами для каждого слоя.
+layers.js предоставляет глобальный layers с массивами: background, midground, world, actors, foreground, ui.
 
 Функции: addToLayer(layer, obj), clearLayer(layer), drawLayers(ctx, camera).
-
-Используемые слои: background, midground, world, actors, foreground, ui.
 
 В recalcScene() платформы уровня добавляются в слой world.
 
 Управление
 Клавиатура: стрелки / A/D — движение, пробел — прыжок.
 
-Тач-управление:
+Тач-зоны:
 
-Левая зона (круг радиусом 100px, центр (150, canvas.height-150)) — движение влево/вправо по горизонтальному смещению пальца.
+Левая зона (круг радиусом 100px) — движение влево/вправо по смещению пальца.
 
-Правая зона (круг радиусом 80px, центр (canvas.width-150, canvas.height-150)) — прыжок.
+Правая зона (круг радиусом 80px) — прыжок.
 
-Зоны управления отображаются полупрозрачными чёрными кругами на мобильных устройствах.
+Рестарт: только через DOM-кнопку #restart-button (обработчик в gameOverUI.init()). Удалены дублирующие обработчики на canvas.
 
 Данные уровней
-level1.js и level2.js содержат объекты с полями:
+level1.js и level2.js содержат объекты с полями number, width, height, groundY, platformData[], platforms[], groundPlatforms[], метод generate().
 
-number, width, height, groundY.
+После вызова generate() создаются объекты Platform и заполняются массивы.
 
-platformData[] — массив объектов с x, offset, w, h (offset — высота над землёй).
-
-platforms[] и groundPlatforms[] — заполняются в generate() объектами Platform.
-
-getGroundBase() возвращает groundY.
-
-После загрузки уровня вызывается generate(), создающий платформы и землю.
-
-Игровой цикл (в main.js)
+Игровой цикл (main.js)
 requestAnimationFrame(gameLoop), вычисление dt.
 
-camera.update(), updatePlayer(dt), world.update().
+Обновление: camera.update(), updatePlayer(dt), world.update().
 
 Отрисовка: drawLayers(ctx, camera), затем drawPlayer(ctx, camera), drawUI() (тач-зоны), drawDebug().
 
-Проверка gameOver:
+Обработка gameOver:
 
-Если gameOver === "complete" — через 2 секунды переключается на следующий уровень (world.setLevel(level2)) и сбрасывает состояние.
+Если gameOver === "complete" — устанавливается player.autoMove = true, игрок автоматически движется вправо; через 2 секунды вызывается world.setLevel(level2), после чего autoMove сбрасывается.
 
-Если gameOver === "fail" — отображается Game Over с кнопкой рестарта.
+Если gameOver === "fail" — показывается оверлей Game Over.
 
-Рестарт и переключение уровня
-restartLevel() — вызывает world.currentLevel.generate(), rocks.generate(), recalcScene(), initPlayerPosition(), сбрасывает gameOver = false, прячет gameOverUI.
+Рестарт и переключение уровней
+restartLevel() (в main.js) перегенерирует текущий уровень, камни, сбрасывает камеру, инициализирует игрока, сбрасывает autoMove и движение, скрывает оверлей.
 
-Переключение уровня в цикле: после gameOver === "complete" вызывается world.setLevel(level2).
+world.setLevel() также сбрасывает autoMove, moveLeft, moveRight при переключении уровней.
 
-Стили (styles.css)
-html, body: margin:0; padding:0; overflow:hidden; user-select:none; touch-action:none.
+Удалённый мёртвый код (важно для нейросети)
+Удалён метод Platform.checkCollision().
 
-#gameCanvas: display:block; width:100vw; height:100vh.
+Удалены поля world.clouds и метод world.addCloud().
 
-#rotateNotice: полноэкранный оверлей, появляется при вертикальной ориентации.
+Удалены переменные restartButton в main.js и controls.js, а также связанные обработчики на canvas.
 
-#game-over: полноэкранный оверлей с текстом и кнопкой рестарта.
+Удалён дублирующий обработчик кнопки рестарта в game.js.
 
-Важные глобальные функции
-initPlayerPosition() — устанавливает игрока на level.getGroundBase() - player.height и сбрасывает скорость.
+Удалена неиспользуемая функция getSceneScale() в canvas.js.
 
-recalcScene() — вызывается при изменении размера экрана или загрузке: обновляет размер canvas, перегенерирует платформы уровня и добавляет их в слой world.
-
-drawUI() — рисует тач-зоны.
-
-drawDebug() — выводит техническую информацию (позиция игрока, уровень, статус).
+Удалено поле player.autoMove было восстановлено с корректной логикой.

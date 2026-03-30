@@ -41,7 +41,6 @@ window.gameOverUI = {
     this.text = document.getElementById("game-over-text");
     this.button = document.getElementById("restart-button");
 
-    // Обработчик кнопки
     this.button.addEventListener("click", () => {
       restartLevel();
       this.hide();

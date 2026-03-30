@@ -32,15 +32,6 @@ initPlayerPosition(); // ставим игрока на землю после г
 let lastTime = performance.now();
 let nextLevelQueued = false;
 
-// Кнопка "Restart" (появляется при Game Over)
-let restartButton = {
-    x: 0,
-    y: 0,
-    w: 200,
-    h: 60,
-    visible: false
-};
-
 function gameLoop(time) {
     // вычисляем dt
     if (!gameLoop.lastTime) gameLoop.lastTime = time;
@@ -83,7 +74,6 @@ function gameLoop(time) {
                 // пересоздаём объекты текущего уровня
                 rocks.generate();
                 recalcScene();
-                initPlayerPosition();
 
                 // сброс состояния игры
                 gameOver = false;
@@ -145,20 +135,17 @@ function drawPlayer(ctx, camera) {
 function restartLevel() {
     if (!world.currentLevel) return;
 
-    // пересоздаём объекты текущего уровня
     world.currentLevel.generate();
     rocks.generate();
-
-    // пересобираем слои и объекты сцены
     recalcScene();
-
-    // ставим игрока на стартовую позицию
     initPlayerPosition();
 
-    // сбрасываем состояние игры
-    gameOver = false;
+    // Сброс авто-движения
+    player.autoMove = false;
+    player.moveLeft = false;
+    player.moveRight = false;
 
-    // прячем Game Over UI
+    gameOver = false;
     gameOverUI.hide();
 }
 // ===============================

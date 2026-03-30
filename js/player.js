@@ -77,18 +77,15 @@ window.updatePlayer = function(dt) {
 
     // ===== ДВИЖЕНИЕ =====
     if (gameOver === false) {
-        if (player.moveLeft) {
-            player.x -= player.speed * frame;
-        }
-        if (player.moveRight) {
-            player.x += player.speed * frame;
-        }
+        // обычное управление
+        if (player.moveLeft) player.x -= player.speed * frame;
+        if (player.moveRight) player.x += player.speed * frame;
     }
     else if (gameOver === "complete" && player.autoMove) {
+        // автоматическое движение вправо после финиша
         const maxX = level.width + 200;
         if (player.x < maxX) player.x += player.speed * frame;
         else player.autoMove = false;
-
         player.moveLeft = false;
         player.moveRight = false;
     }
@@ -126,10 +123,12 @@ window.updatePlayer = function(dt) {
     if (player.y > bottomLimit) {
         player.y = bottomLimit;
         player.vy = 0;
-        if (gameOver === false) gameOver = "fail";
+        if (gameOver === false) {
+            gameOver = "fail";
+            console.log("Player fell off level, gameOver = fail");
+        }
         player.moveLeft = false;
         player.moveRight = false;
-        console.log("Player fell off level, gameOver =", gameOver);
     }
 
         // ===== АНИМАЦИЯ =====

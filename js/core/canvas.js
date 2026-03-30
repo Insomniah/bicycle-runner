@@ -16,10 +16,6 @@ function updateSceneScale() {
     sceneScale = canvas.height / baseHeight;
 }
 
-function getSceneScale() {
-    return sceneScale;
-}
-
 // ===============================
 // Пересчёт размеров canvas
 // ===============================

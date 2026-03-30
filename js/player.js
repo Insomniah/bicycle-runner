@@ -95,38 +95,54 @@ window.updatePlayer = function(dt) {
     // ===== КОЛЛИЗИИ С ПЛАТФОРМАМИ =====
     const allPlatforms = [...(level.platforms || []), ...(level.groundPlatforms || [])];
     player.onGround = false;
-    let collidedVert = false;
 
-    // Вертикальные коллизии (приземление)
-    for (const p of allPlatforms) {
-        const playerBottom = player.y + player.height;
-        const prevBottom = player.prevY + player.height;
-        if (
-            player.vy >= 0 &&
-            prevBottom <= p.y &&
-            playerBottom >= p.y &&
-            player.x + player.width > p.x &&
-            player.x < p.x + p.width
-        ) {
-            player.y = p.y - player.height;
-            player.vy = 0;
-            player.onGround = true;
-            collidedVert = true;
-            break;
+    // 1. Вертикальное разрешение: движение вниз (приземление)
+    if (player.vy >= 0) {
+        for (const p of allPlatforms) {
+            const playerBottom = player.y + player.height;
+            const prevBottom = player.prevY + player.height;
+            if (
+                prevBottom <= p.y &&
+                playerBottom >= p.y &&
+                player.x + player.width > p.x &&
+                player.x < p.x + p.width
+            ) {
+                player.y = p.y - player.height;
+                player.vy = 0;
+                player.onGround = true;
+                break;
+            }
+        }
+    } else {
+        // 2. Вертикальное разрешение: движение вверх (столкновение головой)
+        if (player.vy < 0) {
+            for (const p of allPlatforms) {
+                // Если платформа проходима снизу — пропускаем
+                if (p.passableFromBelow) continue;
+
+                const playerTop = player.y;
+                const prevTop = player.prevY;
+                if (
+                    prevTop >= p.y + p.height &&
+                    playerTop <= p.y + p.height &&
+                    player.x + player.width > p.x &&
+                    player.x < p.x + p.width
+                ) {
+                    player.y = p.y + p.height;
+                    player.vy = 0;
+                    break;
+                }
+            }
         }
     }
 
-    // Горизонтальные коллизии (чтобы не застревать в стенах, если не приземлились)
-    if (!collidedVert) {
-        for (const p of allPlatforms) {
-            if (player.y + player.height > p.y && player.y < p.y + p.height) {
-                if (player.x + player.width > p.x && player.x < p.x) {
-                    // врезался справа
-                    player.x = p.x - player.width;
-                } else if (player.x < p.x + p.width && player.x + player.width > p.x + p.width) {
-                    // врезался слева
-                    player.x = p.x + p.width;
-                }
+    // 3. Горизонтальное разрешение (только после вертикальной коррекции)
+    for (const p of allPlatforms) {
+        if (player.y + player.height > p.y && player.y < p.y + p.height) {
+            if (player.x + player.width > p.x && player.x < p.x) {
+                player.x = p.x - player.width;
+            } else if (player.x < p.x + p.width && player.x + player.width > p.x + p.width) {
+                player.x = p.x + p.width;
             }
         }
     }
@@ -136,6 +152,7 @@ window.updatePlayer = function(dt) {
     if (!player.autoMove && player.x + player.width > level.width) {
         player.x = level.width - player.width;
     }
+
     // ===== ПАДЕНИЕ ЗА ПРЕДЕЛЫ =====
     const bottomLimit = level.height + 200;
     if (player.y > bottomLimit) {

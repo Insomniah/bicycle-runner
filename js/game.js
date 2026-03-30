@@ -57,7 +57,7 @@ window.gameOverUI = {
   hide() {
     if (!this.root) return;
     this.root.classList.add("hidden");
-  }
+  },
 };
 
 // реальные размеры окна браузера на мобильных устройствах для правильного масштабирования
@@ -74,3 +74,4 @@ window.addEventListener("resize", updateRotateNotice);
 window.addEventListener("orientationchange", updateRotateNotice);
 
 gameOverUI.init();
+window.game.gameOverUI = window.gameOverUI;

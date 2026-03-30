@@ -1,11 +1,6 @@
 // player.js – данные игрока, движение, анимация, отрисовка
-if (typeof CONFIG === 'undefined') {
-    console.error("CONFIG not loaded! Check script order.");
-}
-// Создаём глобальный объект game, если его ещё нет
-window.game = window.game || {};
 
-// Определяем игрока внутри game
+window.game = window.game || {};
 window.game.player = {
     x: 200,
     y: 0,
@@ -31,12 +26,13 @@ window.game.player = {
     frameInterval: CONFIG.PLAYER_FRAME_INTERVAL,
 
     jump() {
-        if (this.onGround && window.gameOver === false) {
+        if (this.onGround && window.game.state.gameOver === false) {
             this.vy = this.jumpPower;
             this.onGround = false;
         }
     },
 
+    // отрисовка игрока
     draw(ctx, camera) {
         if (!this.sprite || !this.sprite.complete) return;
         ctx.save();
@@ -64,13 +60,11 @@ window.game.player = {
     }
 };
 
-// Загружаем спрайт
 window.game.player.sprite = new Image();
 window.game.player.sprite.src = "assets/player/player.png";
 
-// Инициализация позиции игрока
 window.initPlayerPosition = function() {
-    const level = window.world ? window.world.currentLevel : null;
+    const level = window.world.currentLevel;
     if (!level) return;
     window.game.player.y = level.getGroundBase() - window.game.player.height;
     window.game.player.x = 200;
@@ -80,7 +74,6 @@ window.initPlayerPosition = function() {
     console.log("Player initialized at", { x: window.game.player.x, y: window.game.player.y });
 };
 
-// Обновление игрока (вызывается из цикла)
 window.updatePlayer = function(dt) {
     const level = window.world ? window.world.currentLevel : null;
     if (!level) {
@@ -92,23 +85,18 @@ window.updatePlayer = function(dt) {
     player.prevY = player.y;
     const frame = Math.max(0.5, Math.min(dt * 60, 2));
 
-    // Финиш уровня
-    if (isNaN(level.width)) {
-        console.error("level.width is NaN!");
-    }
     const atFinish = player.x + player.width >= level.width - CONFIG.FINISH_THRESHOLD;
-    if (atFinish && window.gameOver === false) {
-        window.gameOver = "complete";
+    if (atFinish && window.game.state.gameOver === false) {
+        window.game.state.gameOver = "complete";
         player.autoMove = true;
         console.log("Level finished! gameOver set to 'complete'");
     }
 
-    // Движение
-    if (window.gameOver === false) {
+    if (window.game.state.gameOver === false) {
         if (player.moveLeft) player.x -= player.speed * frame;
         if (player.moveRight) player.x += player.speed * frame;
     }
-    else if (window.gameOver === "complete" && player.autoMove) {
+    else if (window.game.state.gameOver === "complete" && player.autoMove) {
         const maxX = level.width + CONFIG.AUTO_MOVE_EXTRA;
         if (player.x < maxX) player.x += player.speed * frame;
         else player.autoMove = false;
@@ -116,34 +104,31 @@ window.updatePlayer = function(dt) {
         player.moveRight = false;
     }
 
-    // Гравитация
     player.vy += player.gravity * frame;
     player.y += player.vy * frame;
 
-    // Коллизии
     const { onGround } = handleCollisions(player, level);
     player.onGround = onGround;
 
-    // Ограничения по горизонтали
     if (player.x < 0) player.x = 0;
     if (!player.autoMove && player.x + player.width > level.width) {
         player.x = level.width - player.width;
     }
 
-    // Падение за пределы уровня
+    // дно уровня
     const bottomLimit = level.height + CONFIG.FALL_LIMIT_OFFSET;
     if (player.y > bottomLimit) {
         player.y = bottomLimit;
         player.vy = 0;
-        if (window.gameOver === false) {
-            window.gameOver = "fail";
+        if (window.game.state.gameOver === false) {
+            window.game.state.gameOver = "fail";
             console.log("Player fell off level, gameOver = fail");
         }
         player.moveLeft = false;
         player.moveRight = false;
     }
 
-    // Анимация
+    // анимация игрока  
     player.frameTimer += dt;
     if (player.frameTimer > player.frameInterval) {
         player.frameTimer = 0;

@@ -52,8 +52,15 @@ bicycle-runner/
     └── rocks/
         └── *.png
 Ключевые глобальные объекты
-window.game.player
-Поля: x, y, width, height, speed, vy, gravity, jumpPower, onGround, moveLeft, moveRight, autoMove, sprite, анимационные поля.
+### `window.game`
+- **Объект, инкапсулирующий состояние игры и ключевые подсистемы.**
+- **Поля**:
+  - `state`: объект с полями:
+    - `gameOver` – текущий статус игры (`false`, `"complete"`, `"fail"`).
+    - `nextLevelQueued` – флаг, предотвращающий повторный запуск переключения уровня.
+    - `restarting` – флаг, предотвращающий повторный вызов рестарта.
+  - `player` – ссылка на объект игрока (см. выше).
+  - `gameOverUI` – ссылка на объект UI окончания игры.
 
 Методы: jump(), draw(ctx, camera) – отрисовка спрайта с учётом направления.
 
@@ -147,18 +154,14 @@ requestAnimationFrame(gameLoop), вычисление dt с ограничени
 
 Отрисовка: drawLayers(ctx, camera), game.player.draw(ctx, camera), drawUI(), drawDebug().
 
-Обработка gameOver:
-
-Если gameOver === "complete" – устанавливается game.player.autoMove = true, через CONFIG.LEVEL_SWITCH_DELAY вызывается world.setLevel(level2), rocks.generate(), rebuildWorld(), сброс флагов.
-
-Если gameOver === "fail" – показывается оверлей Game Over.
+- **Обработка `game.state.gameOver`**:
+  - Если `game.state.gameOver === "complete"` – устанавливается `game.player.autoMove = true`, через `CONFIG.LEVEL_SWITCH_DELAY` вызывается `world.setLevel(level2)`, `rocks.generate()`, `rebuildWorld()`, сброс флагов `game.state.nextLevelQueued` и `game.state.gameOver`.
+  - Если `game.state.gameOver === "fail"` – показывается оверлей Game Over.
 
 Рестарт и переключение уровней
-restartLevel() проверяет флаг restarting (предотвращает повторный вызов), перегенерирует текущий уровень, камни, вызывает rebuildWorld(), сбрасывает позицию игрока, autoMove и движение.
-
-При переключении уровня (world.setLevel) также вызывается rocks.generate() для обновления камней.
-
-В таймауте переключения уровня установлен флаг nextLevelQueued, предотвращающий повторный запуск.
+- `restartLevel()` проверяет флаг `game.state.restarting` (предотвращает повторный вызов), перегенерирует текущий уровень, камни, вызывает `rebuildWorld()`, сбрасывает позицию игрока, `autoMove` и движение, сбрасывает `game.state.gameOver` и скрывает оверлей.
+- При переключении уровня (`world.setLevel`) также вызывается `rocks.generate()` для обновления камней.
+- В таймауте переключения уровня установлен флаг `game.state.nextLevelQueued`, предотвращающий повторный запуск.
 
 Предзагрузка изображений
 Все графические ресурсы загружаются асинхронно до запуска игрового цикла.

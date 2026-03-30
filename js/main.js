@@ -4,6 +4,21 @@ if (typeof CONFIG === 'undefined') {
     console.error("CONFIG not loaded! Check script order.");
 }
 
+// ===============================
+// Глобальный объект game (инкапсуляция состояния)
+// ===============================
+window.game = window.game || {};
+window.game.state = {
+    gameOver: false,
+    nextLevelQueued: false,
+    restarting: false
+};
+// gameOverUI будет присвоен после загрузки game.js (он уже глобален)
+window.game.gameOverUI = window.gameOverUI; // если gameOverUI уже существует
+
+// ===============================
+// Предзагрузка изображений
+// ===============================
 function loadImage(src) {
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -13,7 +28,6 @@ function loadImage(src) {
     });
 }
 
-// асинхронная загрузка всех изображений перед стартом игры
 async function loadAllImages() {
     const promises = [];
 
@@ -48,13 +62,8 @@ async function loadAllImages() {
 // ===============================
 // Инициализация мира и уровней
 // ===============================
-window.game = window.game || {};
-window.gameOver = false; // временно оставляем глобальным, позже перенесём в game.state
-
 world.sky = sky;
 world.mountains = mountains;
-
-let restarting = false;
 
 loadAllImages().then(() => {
     world.setLevel(level1);
@@ -69,7 +78,7 @@ loadAllImages().then(() => {
     rebuildWorld();
 
     requestAnimationFrame(gameLoop);
-    }).catch(err => {
+}).catch(err => {
     console.error("Critical error during image loading", err);
 });
 
@@ -77,7 +86,6 @@ loadAllImages().then(() => {
 // Игровой цикл
 // ===============================
 let lastTime = performance.now();
-let nextLevelQueued = false;
 
 function gameLoop(time) {
     if (!gameLoop.lastTime) gameLoop.lastTime = time;
@@ -97,48 +105,64 @@ function gameLoop(time) {
     if (window.drawUI) drawUI();
     drawDebug();
 
-    if (window.gameOver) {
-        if (gameOverUI && gameOverUI.show) gameOverUI.show(window.gameOver === "complete");
+    const state = window.game.state;
+    if (state.gameOver) {
+        if (window.game.gameOverUI && window.game.gameOverUI.show) {
+            window.game.gameOverUI.show(state.gameOver === "complete");
+        }
 
-        if (window.gameOver === "complete" && !nextLevelQueued && !restarting) {
-            nextLevelQueued = true;
+        if (state.gameOver === "complete" && !state.nextLevelQueued && !state.restarting) {
+            state.nextLevelQueued = true;
 
             setTimeout(() => {
-                console.log("switching level...")
+                console.log(state.gameOver);
+                console.log("switching level...");
                 world.setLevel(level2);
                 rocks.generate();
-                rebuildWorld();      // перестраивает платформы
-                gameOver = false;
-                nextLevelQueued = false;
-                gameOverUI.hide();
+                rebuildWorld();
+                state.gameOver = false;
+                state.nextLevelQueued = false;
+                if (window.game.gameOverUI && window.game.gameOverUI.hide) {
+                    window.game.gameOverUI.hide();
+                }
             }, CONFIG.LEVEL_SWITCH_DELAY);
         }
     }
 
+
     requestAnimationFrame(gameLoop);
 }
 
+// ===============================
+// Рестарт уровня
+// ===============================
 function restartLevel() {
-    if (restarting) return;
-    restarting = true;
+    const state = window.game.state;
+    if (state.restarting) return;
+    state.restarting = true;
     try {
         if (!world.currentLevel) return;
         world.currentLevel.generate();
         rocks.generate();
-        rebuildWorld();      // перестраивает платформы
+        rebuildWorld();
         initPlayerPosition();
 
         window.game.player.autoMove = false;
         window.game.player.moveLeft = false;
         window.game.player.moveRight = false;
 
-        gameOver = false;
-        if (gameOverUI && gameOverUI.hide) gameOverUI.hide();
+        state.gameOver = false;
+        if (window.game.gameOverUI && window.game.gameOverUI.hide) {
+            window.game.gameOverUI.hide();
+        }
     } finally {
-        restarting = false;
+        state.restarting = false;
     }
 }
 
+// ===============================
+// Отладочная информация
+// ===============================
 function drawDebug() {
     if (!ctx) return;
     ctx.fillStyle = CONFIG.DEBUG_COLOR;
@@ -151,7 +175,7 @@ function drawDebug() {
     let lines = [
         `PLAYER: x=${window.game.player.x.toFixed(1)}, y=${window.game.player.y.toFixed(1)}, vy=${window.game.player.vy.toFixed(2)}, onGround=${window.game.player.onGround}`,
         `LEVEL: ${level.number} Size: ${level.width} X ${level.height}`,
-        `GAME: ${window.gameOver || "running"}`
+        `GAME: ${window.game.state.gameOver || "running"}`
     ];
 
     lines.forEach((line, i) => {

@@ -1,5 +1,4 @@
-// world.js
-window.game = window.game || {};
+// world.js – управление уровнем и фоном
 
 window.world = {
     sky: null,
@@ -25,7 +24,7 @@ window.world = {
         if (this.sky && this.sky.generate) this.sky.generate();
         if (this.mountains && this.mountains.generate) this.mountains.generate();
 
-        window.gameOver = false;
+        window.game.state.gameOver = false;  // ← изменено
         console.log(`Switched to level: ${level === window.level1 ? "level1" : "level2"}`);
     },
 
@@ -37,7 +36,7 @@ window.world = {
             }
         }
         console.warn("getGroundBase fallback to 0");
-        return 0; // или другое разумное значение по умолчанию
+        return 0;
     },
 
     update() {

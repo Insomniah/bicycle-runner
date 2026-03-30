@@ -1,5 +1,7 @@
 // player.js – данные игрока, движение, анимация, отрисовка
-
+if (typeof CONFIG === 'undefined') {
+    console.error("CONFIG not loaded! Check script order.");
+}
 // Создаём глобальный объект game, если его ещё нет
 window.game = window.game || {};
 
@@ -7,12 +9,12 @@ window.game = window.game || {};
 window.game.player = {
     x: 200,
     y: 0,
-    width: 48,
-    height: 48,
-    speed: 6,
+    width: CONFIG.PLAYER_WIDTH,
+    height: CONFIG.PLAYER_HEIGHT,
+    speed: CONFIG.PLAYER_SPEED,
     vy: 0,
-    gravity: 0.3,
-    jumpPower: -9,
+    gravity: CONFIG.PLAYER_GRAVITY,
+    jumpPower: CONFIG.PLAYER_JUMP_POWER,
     onGround: false,
     moveLeft: false,
     moveRight: false,
@@ -22,11 +24,11 @@ window.game.player = {
 
     frameX: 0,
     frameY: 0,
-    frameWidth: 16,
-    frameHeight: 16,
-    frameCount: 17,
+    frameWidth: CONFIG.PLAYER_FRAME_WIDTH,
+    frameHeight: CONFIG.PLAYER_FRAME_HEIGHT,
+    frameCount: CONFIG.PLAYER_FRAME_COUNT,
     frameTimer: 0,
-    frameInterval: 0.08,
+    frameInterval: CONFIG.PLAYER_FRAME_INTERVAL,
 
     jump() {
         if (this.onGround && window.gameOver === false) {
@@ -91,7 +93,10 @@ window.updatePlayer = function(dt) {
     const frame = Math.max(0.5, Math.min(dt * 60, 2));
 
     // Финиш уровня
-    const atFinish = player.x + player.width >= level.width - 5;
+    if (isNaN(level.width)) {
+        console.error("level.width is NaN!");
+    }
+    const atFinish = player.x + player.width >= level.width - CONFIG.FINISH_THRESHOLD;
     if (atFinish && window.gameOver === false) {
         window.gameOver = "complete";
         player.autoMove = true;
@@ -104,7 +109,7 @@ window.updatePlayer = function(dt) {
         if (player.moveRight) player.x += player.speed * frame;
     }
     else if (window.gameOver === "complete" && player.autoMove) {
-        const maxX = level.width + 200;
+        const maxX = level.width + CONFIG.AUTO_MOVE_EXTRA;
         if (player.x < maxX) player.x += player.speed * frame;
         else player.autoMove = false;
         player.moveLeft = false;
@@ -126,7 +131,7 @@ window.updatePlayer = function(dt) {
     }
 
     // Падение за пределы уровня
-    const bottomLimit = level.height + 200;
+    const bottomLimit = level.height + CONFIG.FALL_LIMIT_OFFSET;
     if (player.y > bottomLimit) {
         player.y = bottomLimit;
         player.vy = 0;

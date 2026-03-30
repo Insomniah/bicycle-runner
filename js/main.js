@@ -1,5 +1,9 @@
 // main.js – игровой цикл, инициализация, рестарт, debug
 
+if (typeof CONFIG === 'undefined') {
+    console.error("CONFIG not loaded! Check script order.");
+}
+
 function loadImage(src) {
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -77,7 +81,7 @@ let nextLevelQueued = false;
 function gameLoop(time) {
     if (!gameLoop.lastTime) gameLoop.lastTime = time;
     let dt = (time - gameLoop.lastTime) / 1000;
-    const maxDt = 0.033;
+    const maxDt = CONFIG.MAX_DT;
     if (dt > maxDt) dt = maxDt;
     gameLoop.lastTime = time;
 
@@ -107,7 +111,7 @@ function gameLoop(time) {
                 window.gameOver = false;
                 nextLevelQueued = false;
                 gameOverUI.hide();
-            }, 2000);
+            }, CONFIG.LEVEL_SWITCH_DELAY);
         }
     }
 
@@ -139,8 +143,8 @@ function restartLevel() {
 
 function drawDebug() {
     if (!ctx) return;
-    ctx.fillStyle = "white";
-    ctx.font = "14px monospace";
+    ctx.fillStyle = CONFIG.DEBUG_COLOR;
+    ctx.font = CONFIG.DEBUG_FONT;
     ctx.textAlign = "left";
 
     const level = world.currentLevel;

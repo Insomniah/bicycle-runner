@@ -1,5 +1,9 @@
 // controls.js – обработка ввода с клавиатуры и тач-зон
 
+if (typeof CONFIG === 'undefined') {
+    console.error("CONFIG not loaded! Check script order.");
+}
+
 window.input = {
     left: false,
     right: false,
@@ -41,23 +45,23 @@ function handleTouch(e) {
         const pos = getGameCoords(touch.clientX, touch.clientY);
 
         // Зона движения (левая нижняя часть)
-        const moveZoneX = 150;
-        const moveZoneY = canvas.height - 150;
+        const moveZoneX = CONFIG.TOUCH_MOVE_ZONE_X;
+        const moveZoneY = canvas.height - CONFIG.TOUCH_MOVE_ZONE_Y_OFFSET;
         const dxMove = pos.x - moveZoneX;
         const dyMove = pos.y - moveZoneY;
         const distanceMove = Math.sqrt(dxMove * dxMove + dyMove * dyMove);
-        if (distanceMove < 100) {
-            if (dxMove < -20) moveLeft = true;
-            if (dxMove > 20) moveRight = true;
+        if (distanceMove < CONFIG.TOUCH_MOVE_ZONE_RADIUS) {
+            if (dxMove < -CONFIG.TOUCH_SWIPE_THRESHOLD) moveLeft = true;
+            if (dxMove > CONFIG.TOUCH_SWIPE_THRESHOLD) moveRight = true;
         }
 
         // Зона прыжка (правая нижняя часть)
-        const jumpZoneX = canvas.width - 150;
-        const jumpZoneY = canvas.height - 150;
+        const jumpZoneX = canvas.width - CONFIG.TOUCH_JUMP_ZONE_X_OFFSET;
+        const jumpZoneY = canvas.height - CONFIG.TOUCH_JUMP_ZONE_Y_OFFSET;
         const dxJump = pos.x - jumpZoneX;
         const dyJump = pos.y - jumpZoneY;
         const distanceJump = Math.sqrt(dxJump * dxJump + dyJump * dyJump);
-        if (distanceJump < 80) {
+        if (distanceJump < CONFIG.TOUCH_JUMP_ZONE_RADIUS) {
             jumpPressed = true;
         }
     }

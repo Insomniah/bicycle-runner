@@ -8,14 +8,32 @@ window.camera = {
         const player = window.game.player;
         if (!player || !level) return;
 
-        this.x = player.x - canvas.width * 0.35;
+        // Проверка canvas
+        if (!canvas || !canvas.width || !canvas.height || isNaN(canvas.height)) {
+            console.warn("camera: canvas not ready, calling recalcScene");
+            if (typeof recalcScene === 'function') recalcScene();
+            return;
+        }
+
+        // Проверка player.y
+        if (typeof player.y !== 'number' || isNaN(player.y)) {
+            console.warn("camera: player.y is NaN, skipping update");
+            return;
+        }
+
+        // Горизонталь
+        this.x = player.x - canvas.width * CONFIG.CAMERA_HORIZONTAL_OFFSET;
         if (this.x < 0) this.x = 0;
         if (this.x > level.width - canvas.width) {
             this.x = level.width - canvas.width;
         }
 
-        const desiredGround = canvas.height * 0.75;
+        const desiredGround = canvas.height * CONFIG.CAMERA_GROUND_TARGET;
         const groundY = level.getGroundBase();
+        if (typeof groundY !== 'number' || isNaN(groundY)) {
+            console.error("Invalid groundY:", groundY);
+            return;
+        }
         const minCameraY = groundY - desiredGround;
 
         if (!this.initialized) {
@@ -25,7 +43,7 @@ window.camera = {
         }
 
         const targetY = player.y - canvas.height / 2;
-        this.y += (targetY - this.y) * 0.05;
+        this.y += (targetY - this.y) * CONFIG.CAMERA_VERTICAL_SMOOTHING;
         if (this.y > minCameraY) {
             this.y = minCameraY;
         }

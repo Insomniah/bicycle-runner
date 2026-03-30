@@ -30,10 +30,14 @@ window.world = {
     },
 
     getGroundBase() {
-        if (this.currentLevel && this.currentLevel.getGroundBase) {
-            return this.currentLevel.getGroundBase();
+        if (this.currentLevel && typeof this.currentLevel.getGroundBase === 'function') {
+            const val = this.currentLevel.getGroundBase();
+            if (typeof val === 'number' && !isNaN(val)) {
+                return val;
+            }
         }
-        return 0;
+        console.warn("getGroundBase fallback to 0");
+        return 0; // или другое разумное значение по умолчанию
     },
 
     update() {

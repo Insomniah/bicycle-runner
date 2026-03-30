@@ -1,3 +1,5 @@
+// controls.js – обработка ввода с клавиатуры и тач-зон
+
 window.input = {
     left: false,
     right: false,
@@ -9,9 +11,9 @@ window.input = {
 function getGameCoords(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
     return {
-    x: clientX - rect.left,
-    y: clientY - rect.top
-};
+        x: clientX - rect.left,
+        y: clientY - rect.top
+    };
 }
 
 // мобильное управление
@@ -20,10 +22,10 @@ if (input.isMobile) {
     canvas.addEventListener("touchmove", handleTouch, { passive: false });
     canvas.addEventListener("touchend", (e) => {
         if (e.touches.length === 0) {
-            player.moveLeft = false;
-            player.moveRight = false;
+            window.game.player.moveLeft = false;
+            window.game.player.moveRight = false;
         } else {
-            handleTouch(e); // пересчитать состояние по оставшимся пальцам
+            handleTouch(e);
         }
     });
 }
@@ -38,58 +40,51 @@ function handleTouch(e) {
     for (const touch of e.touches) {
         const pos = getGameCoords(touch.clientX, touch.clientY);
 
-        // ===== ЗОНА ДВИЖЕНИЯ =====
+        // Зона движения (левая нижняя часть)
         const moveZoneX = 150;
         const moveZoneY = canvas.height - 150;
-
         const dxMove = pos.x - moveZoneX;
         const dyMove = pos.y - moveZoneY;
         const distanceMove = Math.sqrt(dxMove * dxMove + dyMove * dyMove);
-
         if (distanceMove < 100) {
             if (dxMove < -20) moveLeft = true;
             if (dxMove > 20) moveRight = true;
         }
 
-        // ===== ЗОНА ПРЫЖКА =====
+        // Зона прыжка (правая нижняя часть)
         const jumpZoneX = canvas.width - 150;
         const jumpZoneY = canvas.height - 150;
-
         const dxJump = pos.x - jumpZoneX;
         const dyJump = pos.y - jumpZoneY;
         const distanceJump = Math.sqrt(dxJump * dxJump + dyJump * dyJump);
-
         if (distanceJump < 80) {
             jumpPressed = true;
         }
     }
 
-    // применяем движение
-    player.moveLeft = moveLeft;
-    player.moveRight = moveRight;
-
-    // прыжок (без дабл-джампа)
-    if (jumpPressed && player.onGround) {
-        player.jump();
+    window.game.player.moveLeft = moveLeft;
+    window.game.player.moveRight = moveRight;
+    if (jumpPressed && window.game.player.onGround) {
+        window.game.player.jump();
     }
 }
 
 // ПК управление
 window.addEventListener("keydown", (e) => {
-
-    if (e.key === "ArrowLeft" || e.key === "a") player.moveLeft = true;
-    if (e.key === "ArrowRight" || e.key === "d") player.moveRight = true;
-    if (e.key === " " ) player.jump();
+    if (e.key === "ArrowLeft" || e.key === "a") window.game.player.moveLeft = true;
+    if (e.key === "ArrowRight" || e.key === "d") window.game.player.moveRight = true;
+    if (e.key === " ") {
+        e.preventDefault(); // чтобы не прокручивало страницу
+        window.game.player.jump();
+    }
 });
 
 window.addEventListener("keyup", (e) => {
-
-    if (e.key === "ArrowLeft" || e.key === "a") player.moveLeft = false;
-    if (e.key === "ArrowRight" || e.key === "d") player.moveRight = false;
+    if (e.key === "ArrowLeft" || e.key === "a") window.game.player.moveLeft = false;
+    if (e.key === "ArrowRight" || e.key === "d") window.game.player.moveRight = false;
 });
 
-
-// отрисовка зон управления
+// Отрисовка зон управления (для мобильных)
 function drawUI() {
     if (!input.isMobile) return;
 
@@ -97,20 +92,13 @@ function drawUI() {
     ctx.globalAlpha = 0.3;
     ctx.fillStyle = "black";
 
-    // левая зона движения
     ctx.beginPath();
     ctx.arc(150, canvas.height - 150, 100, 0, Math.PI * 2);
     ctx.fill();
 
-    // правая зона прыжка
     ctx.beginPath();
     ctx.arc(canvas.width - 150, canvas.height - 150, 80, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
 }
-
-// ===============================
-// Restart button (UI)
-// ===============================
-const restartBtn = document.getElementById("restart-button");

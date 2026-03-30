@@ -1,18 +1,17 @@
-// world.js — минимальный контейнер для сцены/фона + текущий уровень
 const world = {
-    // ===== Фоновые объекты =====
     sky: null,
     mountains: null,
-    // ===== Текущий уровень =====
     currentLevel: null,
 
+    // Установка уровня и генерация его элементов 
     setLevel(level) {
+        if (!level) return;
         this.currentLevel = level;
-        if (level && level.generate) level.generate();
+
+        if (level.generate) level.generate();
 
         if (window.initPlayerPosition) window.initPlayerPosition();
 
-        // Сброс авто-движения и управления после смены уровня
         if (window.player) {
             window.player.autoMove = false;
             window.player.moveLeft = false;
@@ -28,7 +27,7 @@ const world = {
         console.log(`Switched to level: ${level === window.level1 ? "level1" : "level2"}`);
     },
 
-    // ===== Универсальный метод для получения "земли" =====
+    // Получение базовой высоты земли для текущего уровня
     getGroundBase() {
         if (this.currentLevel && this.currentLevel.getGroundBase) {
             return this.currentLevel.getGroundBase();
@@ -36,12 +35,14 @@ const world = {
         return 0;
     },
 
-    // ===== Обновление фоновых объектов =====
+    // Обновление мира (движение облаков, анимация и т.д.)
     update() {
         if (this.sky && this.sky.update) this.sky.update();
         if (this.mountains && this.mountains.update) this.mountains.update();
+        // если остались какие-то облака в массиве (уже удалено)
     },
 
+    // Отрисовка мира (небо, горы и т.д.)
     draw(ctx, camera) {
         if (this.sky && this.sky.draw) this.sky.draw(ctx, camera);
         if (this.mountains && this.mountains.draw) this.mountains.draw(ctx, camera);

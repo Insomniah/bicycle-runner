@@ -3,11 +3,11 @@ window.camera = {
     x: 0,
     y: 0,
     initialized: false,
-
+    
+// Обновление позиции камеры, чтобы следовать за игроком
     update: function () {
 
         const level = window.world.currentLevel;
-
         if (!window.player || !level) return;
 
         // ===== ГОРИЗОНТАЛЬ =====

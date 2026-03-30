@@ -77,12 +77,10 @@ window.updatePlayer = function(dt) {
 
     // ===== ДВИЖЕНИЕ =====
     if (gameOver === false) {
-        // обычное управление
         if (player.moveLeft) player.x -= player.speed * frame;
         if (player.moveRight) player.x += player.speed * frame;
     }
     else if (gameOver === "complete" && player.autoMove) {
-        // автоматическое движение вправо после финиша
         const maxX = level.width + 200;
         if (player.x < maxX) player.x += player.speed * frame;
         else player.autoMove = false;
@@ -93,10 +91,13 @@ window.updatePlayer = function(dt) {
     // ===== ГРАВИТАЦИЯ =====
     player.vy += player.gravity * frame;
     player.y += player.vy * frame;
-    player.onGround = false;
 
     // ===== КОЛЛИЗИИ С ПЛАТФОРМАМИ =====
     const allPlatforms = [...(level.platforms || []), ...(level.groundPlatforms || [])];
+    player.onGround = false;
+    let collidedVert = false;
+
+    // Вертикальные коллизии (приземление)
     for (const p of allPlatforms) {
         const playerBottom = player.y + player.height;
         const prevBottom = player.prevY + player.height;
@@ -110,14 +111,31 @@ window.updatePlayer = function(dt) {
             player.y = p.y - player.height;
             player.vy = 0;
             player.onGround = true;
+            collidedVert = true;
+            break;
         }
     }
-    // ===== ОГРАНИЧЕНИЯ ПО ГОРИЗОНТАЛИ =====
-    if (player.x < 0) {
-        player.x = 0;
-        player.moveLeft = false;
+
+    // Горизонтальные коллизии (чтобы не застревать в стенах, если не приземлились)
+    if (!collidedVert) {
+        for (const p of allPlatforms) {
+            if (player.y + player.height > p.y && player.y < p.y + p.height) {
+                if (player.x + player.width > p.x && player.x < p.x) {
+                    // врезался справа
+                    player.x = p.x - player.width;
+                } else if (player.x < p.x + p.width && player.x + player.width > p.x + p.width) {
+                    // врезался слева
+                    player.x = p.x + p.width;
+                }
+            }
+        }
     }
 
+    // ===== ОГРАНИЧЕНИЯ ПО ГОРИЗОНТАЛИ =====
+    if (player.x < 0) player.x = 0;
+    if (!player.autoMove && player.x + player.width > level.width) {
+        player.x = level.width - player.width;
+    }
     // ===== ПАДЕНИЕ ЗА ПРЕДЕЛЫ =====
     const bottomLimit = level.height + 200;
     if (player.y > bottomLimit) {
@@ -131,12 +149,10 @@ window.updatePlayer = function(dt) {
         player.moveRight = false;
     }
 
-        // ===== АНИМАЦИЯ =====
+    // ===== АНИМАЦИЯ =====
     player.frameTimer += dt;
-
     if (player.frameTimer > player.frameInterval) {
         player.frameTimer = 0;
-
         player.frameX++;
         if (player.frameX >= player.frameCount) {
             player.frameX = 0;

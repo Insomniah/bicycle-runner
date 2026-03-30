@@ -28,7 +28,7 @@ const level2 = {
         this.groundPlatforms = [];
         this.groundPlatforms.push(new Platform(0, base, 600, 200));
         this.groundPlatforms.push(new Platform(800, base, 600, 200));
-        this.groundPlatforms.push(new Platform(1600, base, 600, 200));
+        this.groundPlatforms.push(new Platform(1600, base, 800, 200));
     }
 };
 

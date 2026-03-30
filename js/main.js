@@ -104,7 +104,7 @@ function gameLoop(time) {
 
     // Отрисовка слоёв и игрока
     drawLayers(ctx, camera);
-    drawPlayer(ctx, camera);
+    player.draw(ctx, camera);
     if (window.drawUI) drawUI();
     drawDebug();
 
@@ -134,43 +134,7 @@ function gameLoop(time) {
 // ===============================
 // Отрисовка игрока
 // ===============================
-function drawPlayer(ctx, camera) {
-    if (!player.sprite || !player.sprite.complete) return;
 
-    ctx.save();
-
-    const drawX = player.x - camera.x;
-    const drawY = player.y - camera.y;
-
-    if (player.moveLeft) {
-        ctx.scale(-1, 1);
-        ctx.drawImage(
-            player.sprite,
-            player.frameX * player.frameWidth,
-            0,
-            player.frameWidth,
-            player.frameHeight,
-            -drawX - player.width,
-            drawY,
-            player.width,
-            player.height
-        );
-    } else {
-        ctx.drawImage(
-            player.sprite,
-            player.frameX * player.frameWidth,
-            0,
-            player.frameWidth,
-            player.frameHeight,
-            drawX,
-            drawY,
-            player.width,
-            player.height
-        );
-    }
-
-    ctx.restore();
-}
 
 function restartLevel() {
     if (restarting) return; // уже выполняется рестарт

@@ -1,10 +1,8 @@
-// ===============================
-// Глобальные флаги игры
-// ===============================
-window.gameOver = false;        // false | "complete" | "fail"
+// player.js – данные игрока, движение, анимация, отрисовка
+
 window.player = {
     x: 200,
-    y: 0,               // будет установлен после генерации уровня
+    y: 0,
     width: 48,
     height: 48,
     speed: 6,
@@ -22,40 +20,58 @@ window.player = {
     frameY: 0,
     frameWidth: 16,
     frameHeight: 16,
-    frameCount: 17, // количество кадров в спрайте
+    frameCount: 17,
     frameTimer: 0,
-    frameInterval: 0.08, // скорость анимации
+    frameInterval: 0.08,
 
     jump() {
         if (this.onGround && gameOver === false) {
             this.vy = this.jumpPower;
             this.onGround = false;
         }
+    },
+
+    draw(ctx, camera) {
+        if (!this.sprite || !this.sprite.complete) return;
+        ctx.save();
+        const drawX = this.x - camera.x;
+        const drawY = this.y - camera.y;
+        if (this.moveLeft) {
+            ctx.scale(-1, 1);
+            ctx.drawImage(
+                this.sprite,
+                this.frameX * this.frameWidth, 0,
+                this.frameWidth, this.frameHeight,
+                -drawX - this.width, drawY,
+                this.width, this.height
+            );
+        } else {
+            ctx.drawImage(
+                this.sprite,
+                this.frameX * this.frameWidth, 0,
+                this.frameWidth, this.frameHeight,
+                drawX, drawY,
+                this.width, this.height
+            );
+        }
+        ctx.restore();
     }
 };
 
 player.sprite = new Image();
 player.sprite.src = "assets/player/player.png";
 
-// ===============================
-// Инициализация позиции игрока
-// ===============================
 window.initPlayerPosition = function() {
     const level = world.currentLevel;
     if (!level) return;
-
     player.y = level.getGroundBase() - player.height;
     player.x = 200;
     player.vy = 0;
     player.onGround = false;
     player.autoMove = false;
-
     console.log("Player initialized at", { x: player.x, y: player.y });
 };
 
-// ===============================
-// Обновление игрока
-// ===============================
 window.updatePlayer = function(dt) {
     const level = world.currentLevel;
     if (!level) {
@@ -64,10 +80,9 @@ window.updatePlayer = function(dt) {
     }
 
     player.prevY = player.y;
-
     const frame = Math.max(0.5, Math.min(dt * 60, 2));
 
-    // ===== ФИНИШ УРОВНЯ =====
+    // Финиш уровня
     const atFinish = player.x + player.width >= level.width - 5;
     if (atFinish && gameOver === false) {
         gameOver = "complete";
@@ -75,7 +90,7 @@ window.updatePlayer = function(dt) {
         console.log("Level finished! gameOver set to 'complete'");
     }
 
-    // ===== ДВИЖЕНИЕ =====
+    // Движение
     if (gameOver === false) {
         if (player.moveLeft) player.x -= player.speed * frame;
         if (player.moveRight) player.x += player.speed * frame;
@@ -88,72 +103,21 @@ window.updatePlayer = function(dt) {
         player.moveRight = false;
     }
 
-    // ===== ГРАВИТАЦИЯ =====
+    // Гравитация
     player.vy += player.gravity * frame;
     player.y += player.vy * frame;
 
-    // ===== КОЛЛИЗИИ С ПЛАТФОРМАМИ =====
-    const allPlatforms = [...(level.platforms || []), ...(level.groundPlatforms || [])];
-    player.onGround = false;
+    // Коллизии (вызываем из отдельного модуля)
+    const { onGround } = handleCollisions(player, level);
+    player.onGround = onGround;
 
-    // 1. Вертикальное разрешение: движение вниз (приземление)
-    if (player.vy >= 0) {
-        for (const p of allPlatforms) {
-            const playerBottom = player.y + player.height;
-            const prevBottom = player.prevY + player.height;
-            if (
-                prevBottom <= p.y &&
-                playerBottom >= p.y &&
-                player.x + player.width > p.x &&
-                player.x < p.x + p.width
-            ) {
-                player.y = p.y - player.height;
-                player.vy = 0;
-                player.onGround = true;
-                break;
-            }
-        }
-    } else {
-        // 2. Вертикальное разрешение: движение вверх (столкновение головой)
-        if (player.vy < 0) {
-            for (const p of allPlatforms) {
-                // Если платформа проходима снизу — пропускаем
-                if (p.passableFromBelow) continue;
-
-                const playerTop = player.y;
-                const prevTop = player.prevY;
-                if (
-                    prevTop >= p.y + p.height &&
-                    playerTop <= p.y + p.height &&
-                    player.x + player.width > p.x &&
-                    player.x < p.x + p.width
-                ) {
-                    player.y = p.y + p.height;
-                    player.vy = 0;
-                    break;
-                }
-            }
-        }
-    }
-
-    // 3. Горизонтальное разрешение (только после вертикальной коррекции)
-    for (const p of allPlatforms) {
-        if (player.y + player.height > p.y && player.y < p.y + p.height) {
-            if (player.x + player.width > p.x && player.x < p.x) {
-                player.x = p.x - player.width;
-            } else if (player.x < p.x + p.width && player.x + player.width > p.x + p.width) {
-                player.x = p.x + p.width;
-            }
-        }
-    }
-
-    // ===== ОГРАНИЧЕНИЯ ПО ГОРИЗОНТАЛИ =====
+    // Ограничения по горизонтали
     if (player.x < 0) player.x = 0;
     if (!player.autoMove && player.x + player.width > level.width) {
         player.x = level.width - player.width;
     }
 
-    // ===== ПАДЕНИЕ ЗА ПРЕДЕЛЫ =====
+    // Падение за пределы уровня
     const bottomLimit = level.height + 200;
     if (player.y > bottomLimit) {
         player.y = bottomLimit;
@@ -166,7 +130,7 @@ window.updatePlayer = function(dt) {
         player.moveRight = false;
     }
 
-    // ===== АНИМАЦИЯ =====
+    // Анимация
     player.frameTimer += dt;
     if (player.frameTimer > player.frameInterval) {
         player.frameTimer = 0;
@@ -176,4 +140,3 @@ window.updatePlayer = function(dt) {
         }
     }
 };
-

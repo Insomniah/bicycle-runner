@@ -25,15 +25,20 @@ const sky = {
 
     // Обновление позиции облаков с учётом скорости ветра и зацикливание
     update() {
+        const level = window.world.currentLevel;
+        if (!level) return;
+
         for (const cloud of this.clouds) {
             cloud.x -= this.windSpeed;
 
-            // Зацикливание облаков при выходе за границы уровня
-            const level = window.world.currentLevel;
-            if (this.windSpeed > 0 && cloud.x > level.width + 300) {
+            // Ширина уровня с запасом, чтобы облака не исчезали у края
+            const limit = level.width + 300;
+            if (cloud.x < -cloud.w) {
+                console.log("Cloud reset to right", cloud.x);
+                cloud.x = limit;
+            } else if (cloud.x > limit) {
+                console.log("Cloud reset to left", cloud.x);
                 cloud.x = -cloud.w;
-            } else if (this.windSpeed < 0 && cloud.x < -cloud.w) {
-                cloud.x = level.width + 300;
             }
         }
     },

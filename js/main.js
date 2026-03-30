@@ -65,10 +65,11 @@ loadAllImages().then(() => {
     addToLayer("background", mountains);
     addToLayer("midground", rocks);
 
-    recalcScene();
+    resizeCanvas();
+    rebuildWorld();
 
     requestAnimationFrame(gameLoop);
-}).catch(err => {
+    }).catch(err => {
     console.error("Critical error during image loading", err);
 });
 
@@ -103,12 +104,11 @@ function gameLoop(time) {
             nextLevelQueued = true;
 
             setTimeout(() => {
-                console.log("Switching to level2...");
+                console.log("switching level...")
                 world.setLevel(level2);
                 rocks.generate();
-                recalcScene();
-
-                window.gameOver = false;
+                rebuildWorld();      // перестраивает платформы
+                gameOver = false;
                 nextLevelQueued = false;
                 gameOverUI.hide();
             }, CONFIG.LEVEL_SWITCH_DELAY);
@@ -121,20 +121,18 @@ function gameLoop(time) {
 function restartLevel() {
     if (restarting) return;
     restarting = true;
-
     try {
         if (!world.currentLevel) return;
-
         world.currentLevel.generate();
         rocks.generate();
-        recalcScene();
+        rebuildWorld();      // перестраивает платформы
         initPlayerPosition();
 
         window.game.player.autoMove = false;
         window.game.player.moveLeft = false;
         window.game.player.moveRight = false;
 
-        window.gameOver = false;
+        gameOver = false;
         if (gameOverUI && gameOverUI.hide) gameOverUI.hide();
     } finally {
         restarting = false;

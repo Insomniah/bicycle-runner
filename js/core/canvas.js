@@ -1,14 +1,9 @@
+// canvas.js
+
 const canvas = document.getElementById("gameCanvas");
-
-if (!canvas) {
-    throw new Error("Canvas element #gameCanvas not found");
-}
-
+if (!canvas) throw new Error("Canvas element #gameCanvas not found");
 const ctx = canvas.getContext("2d");
 
-// ===============================
-// Масштаб сцены
-// ===============================
 let sceneScale = 1;
 
 function updateSceneScale() {
@@ -16,25 +11,15 @@ function updateSceneScale() {
     sceneScale = canvas.height / baseHeight;
 }
 
-// ===============================
-// Пересчёт размеров canvas
-// ===============================
-function resize() {
+function resizeCanvas() {
     const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
     const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
-
     canvas.width = vw;
     canvas.height = vh;
+    updateSceneScale();
 }
 
-// ===============================
-// Полный перерасчёт сцены
-// ===============================
-function recalcScene() {
-    resize();
-    updateSceneScale();
-
-    // ===== защита от раннего вызова =====
+function rebuildWorld() {
     if (!window.clearLayer || !window.addToLayer) {
         console.warn("Layers not ready yet");
         return;
@@ -42,35 +27,32 @@ function recalcScene() {
 
     clearLayer("world");
 
-    // ===== УРОВЕНЬ =====
     const level = window.world.currentLevel;
+    if (!level) return;
 
-    if (level && level.generate) {
-        level.generate();
+    if (level.generate) level.generate(); // перегенерирует платформы
 
-        for (const p of level.platforms) {
-            addToLayer("world", p);
-        }
-
-        for (const p of level.groundPlatforms) {
-            addToLayer("world", p);
-        }
+    for (const p of level.platforms) {
+        addToLayer("world", p);
+    }
+    for (const p of level.groundPlatforms) {
+        addToLayer("world", p);
     }
 
-    if (window.player && level) {
-        player.y = level.getGroundBase() - player.height;
+    // Обновляем позицию игрока только если он существует и есть уровень
+    if (window.game && window.game.player && level) {
+        window.game.player.y = level.getGroundBase() - window.game.player.height;
     }
 }
 
-// ===============================
-// События изменения размера
-// ===============================
-window.addEventListener("resize", recalcScene);
+// Экспортируем функции в глобальную область (временно, пока не инкапсулировали всё в game)
+window.resizeCanvas = resizeCanvas;
+window.rebuildWorld = rebuildWorld;
+
+// События изменения размера – только изменение canvas, без перестройки мира
+window.addEventListener("resize", resizeCanvas);
 window.addEventListener("orientationchange", () => {
-    setTimeout(recalcScene, 200);
+    setTimeout(resizeCanvas, 200);
 });
 
-// ===============================
-// Первый запуск
-// ===============================
-window.addEventListener("load", recalcScene);
+// Первоначальный запуск: размер и сборка мира будут выполнены в main.js после загрузки

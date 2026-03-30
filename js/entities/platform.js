@@ -1,5 +1,5 @@
 class Platform {
-    constructor(x, y, width, height, passableFromBelow = true) {
+    constructor(x, y, width, height, passableFromBelow = false) {
         this.x = x;
         this.y = y;
         this.width = width;

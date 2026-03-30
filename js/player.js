@@ -177,17 +177,3 @@ window.updatePlayer = function(dt) {
     }
 };
 
-// ===============================
-// Отрисовка игрока
-// ===============================
-window.drawPlayer = function(ctx, camera) {
-    if (!ctx || !camera) return;
-
-    ctx.fillStyle = "lime";
-    ctx.fillRect(
-        player.x - camera.x,
-        player.y - camera.y,
-        player.width,
-        player.height
-    );
-};

@@ -8,7 +8,8 @@ window.game = window.game || {};
 window.game.state = {
     gameOver: false,
     nextLevelQueued: false,
-    restarting: false
+    restarting: false,
+    debugMode: false,
 };
 window.game.gameOverUI = window.gameOverUI; // присвоим позже
 
@@ -81,22 +82,45 @@ window.game.restart = function() {
 
 window.game.drawDebug = function() {
     if (!ctx) return;
+    const debugMode = window.game.state.debugMode;
+    if (!debugMode) return; // ничего не рисуем, если отладка выключена
+
     ctx.fillStyle = CONFIG.DEBUG_COLOR;
     ctx.font = CONFIG.DEBUG_FONT;
     ctx.textAlign = "left";
 
+    const player = window.game.player;
+    const camera = window.game.camera;
     const level = window.game.world.currentLevel;
-    if (!level) return;
+    if (!player || !camera || !level) return;
+
+    const x = player.x - camera.x;
+    const y = player.y - camera.y;
+    const rightX = x + player.width;
+    const bottomY = y + player.height;
+
+    // Отрисовка полупрозрачного хитбокса
+    ctx.save();
+    ctx.globalAlpha = 0.2;
+    ctx.fillStyle = "lime";
+    ctx.fillRect(x, y, player.width, player.height);
+    ctx.strokeStyle = "lime";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, player.width, player.height);
+    ctx.restore();
 
     let lines = [
-        `PLAYER: x=${window.game.player.x.toFixed(1)}, y=${window.game.player.y.toFixed(1)}, vy=${window.game.player.vy.toFixed(2)}, onGround=${window.game.player.onGround}`,
+        `PLAYER: x=${player.x.toFixed(1)}, y=${player.y.toFixed(1)}, vy=${player.vy.toFixed(2)}, onGround=${player.onGround}`,
         `LEVEL: ${level.number} Size: ${level.width} X ${level.height}`,
-        `GAME: ${window.game.state.gameOver || "running"}`
+        `GAME: ${window.game.state.gameOver || "running"}`,
+        `HITBOX: left=${x.toFixed(1)}, top=${y.toFixed(1)}, right=${rightX.toFixed(1)}, bottom=${bottomY.toFixed(1)}, width=${player.width}, height=${player.height}`
     ];
 
     lines.forEach((line, i) => {
         ctx.fillText(line, 10, 20 + i * 18);
     });
+
+    lines.push(`COYOTE: ${player.coyoteTimer.toFixed(3)}`);
 };
 
 // ===============================

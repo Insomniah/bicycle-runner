@@ -88,6 +88,20 @@ window.addEventListener("keyup", (e) => {
     if (e.key === "ArrowRight" || e.key === "d") window.game.player.moveRight = false;
 });
 
+window.addEventListener("keydown", (e) => {
+    // Переключение отладочного режима по клавише `ё` (Backquote)
+    if (e.code === 'Backquote') {
+        e.preventDefault(); // чтобы не вводить символ в консоль (если она открыта)
+        window.game.state.debugMode = !window.game.state.debugMode;
+        console.log("Debug mode:", window.game.state.debugMode ? "ON" : "OFF");
+    }
+
+    // Остальные клавиши (движение, прыжок)
+    if (e.key === "ArrowLeft" || e.key === "a") window.game.player.moveLeft = true;
+    if (e.key === "ArrowRight" || e.key === "d") window.game.player.moveRight = true;
+    if (e.key === " ") window.game.player.jump();
+});
+
 // Отрисовка зон управления (для мобильных)
 function drawUI() {
     if (!input.isMobile) return;

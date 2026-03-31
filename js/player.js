@@ -56,82 +56,82 @@ window.game.player = {
             );
         }
         ctx.restore();
+    },
+
+    initPosition() {
+        const level = window.game.world.currentLevel;
+        if (!level) return;
+        this.y = level.getGroundBase() - this.height;
+        this.x = 200;
+        this.vy = 0;
+        this.onGround = false;
+        this.autoMove = false;
+        console.log("Player initialized at", { x: this.x, y: this.y });
+    },
+
+    update(dt) {
+        const level = window.game.world ? window.game.world.currentLevel : null;
+        if (!level) {
+            console.warn("updatePlayer called but no current level");
+            return;
+        }
+
+        const player = this;
+        player.prevY = player.y;
+        const frame = Math.max(0.5, Math.min(dt * 60, 2));
+
+        const atFinish = player.x + player.width >= level.width - CONFIG.FINISH_THRESHOLD;
+        if (atFinish && window.game.state.gameOver === false) {
+            window.game.state.gameOver = "complete";
+            player.autoMove = true;
+            console.log("Level finished! gameOver set to 'complete'");
+        }
+
+        if (window.game.state.gameOver === false) {
+            if (player.moveLeft) player.x -= player.speed * frame;
+            if (player.moveRight) player.x += player.speed * frame;
+        }
+        else if (window.game.state.gameOver === "complete" && player.autoMove) {
+            const maxX = level.width + CONFIG.AUTO_MOVE_EXTRA;
+            if (player.x < maxX) player.x += player.speed * frame;
+            else player.autoMove = false;
+            player.moveLeft = false;
+            player.moveRight = false;
+        }
+
+        player.vy += player.gravity * frame;
+        player.y += player.vy * frame;
+
+        const { onGround } = handleCollisions(player, level);
+        player.onGround = onGround;
+
+        if (player.x < 0) player.x = 0;
+        if (!player.autoMove && player.x + player.width > level.width) {
+            player.x = level.width - player.width;
+        }
+
+        const bottomLimit = level.height + CONFIG.FALL_LIMIT_OFFSET;
+        if (player.y > bottomLimit) {
+            player.y = bottomLimit;
+            player.vy = 0;
+            if (window.game.state.gameOver === false) {
+                window.game.state.gameOver = "fail";
+                console.log("Player fell off level, gameOver = fail");
+            }
+            player.moveLeft = false;
+            player.moveRight = false;
+        }
+
+        player.frameTimer += dt;
+        if (player.frameTimer > player.frameInterval) {
+            player.frameTimer = 0;
+            player.frameX++;
+            if (player.frameX >= player.frameCount) {
+                player.frameX = 0;
+            }
+        }
     }
 };
 
 window.game.player.sprite = new Image();
 window.game.player.sprite.src = "assets/player/player.png";
-
-window.initPlayerPosition = function() {
-    const level = window.game.world.currentLevel;
-    if (!level) return;
-    window.game.player.y = level.getGroundBase() - window.game.player.height;
-    window.game.player.x = 200;
-    window.game.player.vy = 0;
-    window.game.player.onGround = false;
-    window.game.player.autoMove = false;
-    console.log("Player initialized at", { x: window.game.player.x, y: window.game.player.y });
-};
-
-window.updatePlayer = function(dt) {
-    const level = window.game.world ? window.game.world.currentLevel : null;
-    if (!level) {
-        console.warn("updatePlayer called but no current level");
-        return;
-    }
-
-    const player = window.game.player;
-    player.prevY = player.y;
-    const frame = Math.max(0.5, Math.min(dt * 60, 2));
-
-    const atFinish = player.x + player.width >= level.width - CONFIG.FINISH_THRESHOLD;
-    if (atFinish && window.game.state.gameOver === false) {
-        window.game.state.gameOver = "complete";
-        player.autoMove = true;
-        console.log("Level finished! gameOver set to 'complete'");
-    }
-
-    if (window.game.state.gameOver === false) {
-        if (player.moveLeft) player.x -= player.speed * frame;
-        if (player.moveRight) player.x += player.speed * frame;
-    }
-    else if (window.game.state.gameOver === "complete" && player.autoMove) {
-        const maxX = level.width + CONFIG.AUTO_MOVE_EXTRA;
-        if (player.x < maxX) player.x += player.speed * frame;
-        else player.autoMove = false;
-        player.moveLeft = false;
-        player.moveRight = false;
-    }
-
-    player.vy += player.gravity * frame;
-    player.y += player.vy * frame;
-
-    const { onGround } = handleCollisions(player, level);
-    player.onGround = onGround;
-
-    if (player.x < 0) player.x = 0;
-    if (!player.autoMove && player.x + player.width > level.width) {
-        player.x = level.width - player.width;
-    }
-
-    const bottomLimit = level.height + CONFIG.FALL_LIMIT_OFFSET;
-    if (player.y > bottomLimit) {
-        player.y = bottomLimit;
-        player.vy = 0;
-        if (window.game.state.gameOver === false) {
-            window.game.state.gameOver = "fail";
-            console.log("Player fell off level, gameOver = fail");
-        }
-        player.moveLeft = false;
-        player.moveRight = false;
-    }
-
-    player.frameTimer += dt;
-    if (player.frameTimer > player.frameInterval) {
-        player.frameTimer = 0;
-        player.frameX++;
-        if (player.frameX >= player.frameCount) {
-            player.frameX = 0;
-        }
-    }
-};

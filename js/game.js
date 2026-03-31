@@ -42,7 +42,7 @@ window.gameOverUI = {
     this.button = document.getElementById("restart-button");
 
     this.button.addEventListener("click", () => {
-      restartLevel();
+      window.game.restart();
       this.hide();
     });
   },
@@ -59,6 +59,10 @@ window.gameOverUI = {
     this.root.classList.add("hidden");
   },
 };
+
+// Привязываем к window.game для доступа из других модулей
+window.game = window.game || {};
+window.game.gameOverUI = window.gameOverUI;
 
 // реальные размеры окна браузера на мобильных устройствах для правильного масштабирования
 function setRealVH() {

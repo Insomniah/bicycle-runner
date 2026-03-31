@@ -53,9 +53,55 @@ async function loadAllImages() {
 }
 
 // ===============================
+// Методы game
+// ===============================
+window.game.restart = function() {
+    const state = window.game.state;
+    if (state.restarting) return;
+    state.restarting = true;
+    try {
+        if (!window.game.world.currentLevel) return;
+        window.game.world.currentLevel.generate();
+        rocks.generate();
+        rebuildWorld();
+        window.game.player.initPosition();
+
+        window.game.player.autoMove = false;
+        window.game.player.moveLeft = false;
+        window.game.player.moveRight = false;
+
+        state.gameOver = false;
+        if (window.game.gameOverUI && window.game.gameOverUI.hide) {
+            window.game.gameOverUI.hide();
+        }
+    } finally {
+        state.restarting = false;
+    }
+};
+
+window.game.drawDebug = function() {
+    if (!ctx) return;
+    ctx.fillStyle = CONFIG.DEBUG_COLOR;
+    ctx.font = CONFIG.DEBUG_FONT;
+    ctx.textAlign = "left";
+
+    const level = window.game.world.currentLevel;
+    if (!level) return;
+
+    let lines = [
+        `PLAYER: x=${window.game.player.x.toFixed(1)}, y=${window.game.player.y.toFixed(1)}, vy=${window.game.player.vy.toFixed(2)}, onGround=${window.game.player.onGround}`,
+        `LEVEL: ${level.number} Size: ${level.width} X ${level.height}`,
+        `GAME: ${window.game.state.gameOver || "running"}`
+    ];
+
+    lines.forEach((line, i) => {
+        ctx.fillText(line, 10, 20 + i * 18);
+    });
+};
+
+// ===============================
 // Инициализация мира и уровней
 // ===============================
-// world уже создан в world.js как window.game.world
 window.game.world.sky = sky;
 window.game.world.mountains = mountains;
 
@@ -91,13 +137,13 @@ function gameLoop(time) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (window.game.camera && window.game.camera.update) window.game.camera.update();
-    if (window.updatePlayer) window.updatePlayer(dt);
+    if (window.game.player && window.game.player.update) window.game.player.update(dt);
     if (window.game.world && window.game.world.update) window.game.world.update();
 
     drawLayers(ctx, window.game.camera);
     window.game.player.draw(ctx, window.game.camera);
     if (window.drawUI) drawUI();
-    drawDebug();
+    window.game.drawDebug();
 
     const state = window.game.state;
     if (state.gameOver) {
@@ -123,48 +169,4 @@ function gameLoop(time) {
     }
 
     requestAnimationFrame(gameLoop);
-}
-
-function restartLevel() {
-    const state = window.game.state;
-    if (state.restarting) return;
-    state.restarting = true;
-    try {
-        if (!window.game.world.currentLevel) return;
-        window.game.world.currentLevel.generate();
-        rocks.generate();
-        rebuildWorld();
-        initPlayerPosition();
-
-        window.game.player.autoMove = false;
-        window.game.player.moveLeft = false;
-        window.game.player.moveRight = false;
-
-        state.gameOver = false;
-        if (window.game.gameOverUI && window.game.gameOverUI.hide) {
-            window.game.gameOverUI.hide();
-        }
-    } finally {
-        state.restarting = false;
-    }
-}
-
-function drawDebug() {
-    if (!ctx) return;
-    ctx.fillStyle = CONFIG.DEBUG_COLOR;
-    ctx.font = CONFIG.DEBUG_FONT;
-    ctx.textAlign = "left";
-
-    const level = window.game.world.currentLevel;
-    if (!level) return;
-
-    let lines = [
-        `PLAYER: x=${window.game.player.x.toFixed(1)}, y=${window.game.player.y.toFixed(1)}, vy=${window.game.player.vy.toFixed(2)}, onGround=${window.game.player.onGround}`,
-        `LEVEL: ${level.number} Size: ${level.width} X ${level.height}`,
-        `GAME: ${window.game.state.gameOver || "running"}`
-    ];
-
-    lines.forEach((line, i) => {
-        ctx.fillText(line, 10, 20 + i * 18);
-    });
 }

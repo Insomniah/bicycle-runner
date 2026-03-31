@@ -12,7 +12,9 @@ window.game.world = {
 
         if (level.generate) level.generate();
 
-        if (window.initPlayerPosition) window.initPlayerPosition();
+        if (window.game.player && window.game.player.initPosition) {
+            window.game.player.initPosition();
+        }
 
         if (window.game.player) {
             window.game.player.autoMove = false;

@@ -65,6 +65,8 @@ nextLevelQueued – флаг, предотвращающий повторный 
 
 restarting – флаг, предотвращающий повторный вызов рестарта.
 
+debugMode – флаг для отображения отладочной информации (переключается клавишей ё/~).
+
 player – ссылка на объект игрока (см. ниже).
 
 world – ссылка на объект мира (см. ниже).
@@ -77,30 +79,38 @@ gameOverUI – ссылка на объект UI окончания игры.
 
 restart() – перезапускает текущий уровень, сбрасывает состояние игрока и флаги.
 
-drawDebug() – отображает отладочную информацию на экране.
+drawDebug() – отображает отладочную информацию на экране (хитбокс, координаты, Coyote Time).
 
 window.game.player
 Поля:
 
-x, y, width, height – координаты и размеры хитбокса (вычисляются из CONFIG.PLAYER_WIDTH/HEIGHT).
+x, y – координаты левого верхнего угла хитбокса.
+
+width, height – размеры хитбокса (CONFIG.PLAYER_WIDTH, CONFIG.PLAYER_HEIGHT).
 
 speed, vy, gravity, jumpPower – параметры движения.
 
-onGround, moveLeft, moveRight, autoMove – состояние.
+onGround – находится ли игрок на твёрдой поверхности.
+
+moveLeft, moveRight, autoMove – состояние управления и автодвижения.
 
 sprite – изображение игрока.
 
 Анимационные поля (frameX, frameTimer, frameInterval и т.д.).
 
+coyoteTimer – таймер для Coyote Time (позволяет прыгнуть в течение короткого времени после отрыва от платформы).
+
+hitboxOffsetX – смещение хитбокса относительно визуальной позиции (для центрирования).
+
 Методы:
 
-jump() – прыжок, если игрок на земле и игра не завершена.
+jump() – прыжок, если игрок на земле или активен Coyote Time, и игра не завершена.
 
-draw(ctx, camera) – отрисовка спрайта с учётом видимой области (PLAYER_SRC_VISIBLE_*) и масштабирования до PLAYER_WIDTH/HEIGHT. При движении влево спрайт отражается.
+draw(ctx, camera) – отрисовка спрайта с использованием CONFIG.PLAYER_DRAW_WIDTH (визуальная ширина) и центрированием относительно узкого хитбокса.
 
 initPosition() – устанавливает начальную позицию на земле текущего уровня.
 
-update(dt) – обновляет физику, коллизии, анимацию.
+update(dt) – обновляет физику, коллизии, анимацию и Coyote Time.
 
 window.game.world
 Поля: sky, mountains, currentLevel.
@@ -151,15 +161,17 @@ collision.js (модуль)
 Возвращает { onGround }.
 
 Конфигурация (CONFIG)
-Все настройки игры хранятся в js/config.js и доступны через window.CONFIG. Основные параметры (выделены последние изменения):
+Все настройки игры хранятся в js/config.js и доступны через window.CONFIG. Основные параметры:
 
 Категория	Параметр	Описание
 Игрок	PLAYER_SRC_VISIBLE_X/Y/W/H	Область спрайта, которая визуально отображается (в пикселях исходного кадра)
 PLAYER_SCALE	Масштаб видимой области до итогового размера хитбокса
-PLAYER_WIDTH, PLAYER_HEIGHT	Вычисляются как src_w * scale и src_h * scale
+PLAYER_WIDTH, PLAYER_HEIGHT	Размеры хитбокса (узкие, под ноги)
+PLAYER_DRAW_WIDTH	Ширина отрисовки (может быть больше хитбокса для лучшего вида)
 PLAYER_SPEED, PLAYER_GRAVITY, PLAYER_JUMP_POWER	Движение и прыжок
 PLAYER_FRAME_WIDTH/HEIGHT, PLAYER_FRAME_COUNT, PLAYER_FRAME_INTERVAL	Анимация
 PLAYER_START_X	Начальная позиция игрока по X
+PLAYER_COYOTE_TIME	Время (сек), в течение которого можно прыгнуть после отрыва
 Камера	CAMERA_HORIZONTAL_OFFSET, CAMERA_VERTICAL_SMOOTHING, CAMERA_GROUND_TARGET	Параметры камеры
 Физика	MAX_DT, MIN_FRAME, MAX_FRAME, FINISH_THRESHOLD, AUTO_MOVE_EXTRA, FALL_LIMIT_OFFSET	Ограничения шага, условия финиша и падения
 Фон	SKY_CLOUD_WRAP_MARGIN, SKY_WIND_SPEED, SKY_PARALLAX	Облака
@@ -177,6 +189,8 @@ layers.js предоставляет глобальный layers с массив
 
 Управление
 Клавиатура: стрелки / A/D — движение, пробел — прыжок.
+
+Клавиша ё/~: включает/выключает отладочный режим (хитбокс и информация).
 
 Тач-зоны:
 
@@ -203,7 +217,7 @@ requestAnimationFrame(gameLoop), вычисление dt с ограничени
 
 Обновление: window.game.camera.update(), window.game.player.update(dt), window.game.world.update().
 
-Отрисовка: drawLayers(ctx, window.game.camera), window.game.player.draw(ctx, window.game.camera), drawUI(), window.game.drawDebug().
+Отрисовка: drawLayers(ctx, window.game.camera), window.game.player.draw(ctx, window.game.camera), drawUI(), window.game.drawDebug() (только если включён debugMode).
 
 Обработка game.state.gameOver:
 

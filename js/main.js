@@ -123,9 +123,9 @@ window.game.drawDebug = function() {
     lines.push(`COYOTE: ${player.coyoteTimer.toFixed(3)}`);
 };
 
-// ===============================
+// ==============================
 // Инициализация мира и уровней
-// ===============================
+// ==============================
 window.game.world.sky = sky;
 window.game.world.mountains = mountains;
 

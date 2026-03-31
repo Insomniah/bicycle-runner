@@ -4,21 +4,14 @@ if (typeof CONFIG === 'undefined') {
     console.error("CONFIG not loaded! Check script order.");
 }
 
-// ===============================
-// Глобальный объект game (инкапсуляция состояния)
-// ===============================
 window.game = window.game || {};
 window.game.state = {
     gameOver: false,
     nextLevelQueued: false,
     restarting: false
 };
-// gameOverUI будет присвоен после загрузки game.js (он уже глобален)
-window.game.gameOverUI = window.gameOverUI; // если gameOverUI уже существует
+window.game.gameOverUI = window.gameOverUI; // присвоим позже
 
-// ===============================
-// Предзагрузка изображений
-// ===============================
 function loadImage(src) {
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -62,11 +55,12 @@ async function loadAllImages() {
 // ===============================
 // Инициализация мира и уровней
 // ===============================
-world.sky = sky;
-world.mountains = mountains;
+// world уже создан в world.js как window.game.world
+window.game.world.sky = sky;
+window.game.world.mountains = mountains;
 
 loadAllImages().then(() => {
-    world.setLevel(level1);
+    window.game.world.setLevel(level1);
     rocks.generate();
 
     addToLayer("background", skyBackground);
@@ -96,12 +90,12 @@ function gameLoop(time) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (camera && camera.update) camera.update();
+    if (window.game.camera && window.game.camera.update) window.game.camera.update();
     if (window.updatePlayer) window.updatePlayer(dt);
-    if (world && world.update) world.update();
+    if (window.game.world && window.game.world.update) window.game.world.update();
 
-    drawLayers(ctx, camera);
-    window.game.player.draw(ctx, camera);
+    drawLayers(ctx, window.game.camera);
+    window.game.player.draw(ctx, window.game.camera);
     if (window.drawUI) drawUI();
     drawDebug();
 
@@ -115,9 +109,8 @@ function gameLoop(time) {
             state.nextLevelQueued = true;
 
             setTimeout(() => {
-                console.log(state.gameOver);
                 console.log("switching level...");
-                world.setLevel(level2);
+                window.game.world.setLevel(level2);
                 rocks.generate();
                 rebuildWorld();
                 state.gameOver = false;
@@ -129,20 +122,16 @@ function gameLoop(time) {
         }
     }
 
-
     requestAnimationFrame(gameLoop);
 }
 
-// ===============================
-// Рестарт уровня
-// ===============================
 function restartLevel() {
     const state = window.game.state;
     if (state.restarting) return;
     state.restarting = true;
     try {
-        if (!world.currentLevel) return;
-        world.currentLevel.generate();
+        if (!window.game.world.currentLevel) return;
+        window.game.world.currentLevel.generate();
         rocks.generate();
         rebuildWorld();
         initPlayerPosition();
@@ -160,16 +149,13 @@ function restartLevel() {
     }
 }
 
-// ===============================
-// Отладочная информация
-// ===============================
 function drawDebug() {
     if (!ctx) return;
     ctx.fillStyle = CONFIG.DEBUG_COLOR;
     ctx.font = CONFIG.DEBUG_FONT;
     ctx.textAlign = "left";
 
-    const level = world.currentLevel;
+    const level = window.game.world.currentLevel;
     if (!level) return;
 
     let lines = [

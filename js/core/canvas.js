@@ -27,7 +27,7 @@ function rebuildWorld() {
 
     clearLayer("world");
 
-    const level = window.world.currentLevel;
+    const level = window.game.world.currentLevel;
     if (!level) return;
 
     if (level.generate) level.generate(); // перегенерирует платформы
@@ -39,7 +39,6 @@ function rebuildWorld() {
         addToLayer("world", p);
     }
 
-    // Обновляем позицию игрока только если он существует и есть уровень
     if (window.game && window.game.player && level) {
         window.game.player.y = level.getGroundBase() - window.game.player.height;
     }

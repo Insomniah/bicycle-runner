@@ -32,7 +32,6 @@ window.game.player = {
         }
     },
 
-    // отрисовка игрока
     draw(ctx, camera) {
         if (!this.sprite || !this.sprite.complete) return;
         ctx.save();
@@ -64,7 +63,7 @@ window.game.player.sprite = new Image();
 window.game.player.sprite.src = "assets/player/player.png";
 
 window.initPlayerPosition = function() {
-    const level = window.world.currentLevel;
+    const level = window.game.world.currentLevel;
     if (!level) return;
     window.game.player.y = level.getGroundBase() - window.game.player.height;
     window.game.player.x = 200;
@@ -75,7 +74,7 @@ window.initPlayerPosition = function() {
 };
 
 window.updatePlayer = function(dt) {
-    const level = window.world ? window.world.currentLevel : null;
+    const level = window.game.world ? window.game.world.currentLevel : null;
     if (!level) {
         console.warn("updatePlayer called but no current level");
         return;
@@ -115,7 +114,6 @@ window.updatePlayer = function(dt) {
         player.x = level.width - player.width;
     }
 
-    // дно уровня
     const bottomLimit = level.height + CONFIG.FALL_LIMIT_OFFSET;
     if (player.y > bottomLimit) {
         player.y = bottomLimit;
@@ -128,7 +126,6 @@ window.updatePlayer = function(dt) {
         player.moveRight = false;
     }
 
-    // анимация игрока  
     player.frameTimer += dt;
     if (player.frameTimer > player.frameInterval) {
         player.frameTimer = 0;

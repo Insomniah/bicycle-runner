@@ -1,6 +1,7 @@
 // world.js – управление уровнем и фоном
 
-window.world = {
+window.game = window.game || {};
+window.game.world = {
     sky: null,
     mountains: null,
     currentLevel: null,
@@ -19,12 +20,12 @@ window.world = {
             window.game.player.moveRight = false;
         }
 
-        if (window.camera) window.camera.initialized = false;
+        if (window.game.camera) window.game.camera.initialized = false;
 
         if (this.sky && this.sky.generate) this.sky.generate();
         if (this.mountains && this.mountains.generate) this.mountains.generate();
 
-        window.game.state.gameOver = false;  // ← изменено
+        window.game.state.gameOver = false;
         console.log(`Switched to level: ${level === window.level1 ? "level1" : "level2"}`);
     },
 

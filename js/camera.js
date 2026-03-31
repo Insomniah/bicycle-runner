@@ -1,17 +1,19 @@
-window.camera = {
+// camera.js
+window.game = window.game || {};
+window.game.camera = {
     x: 0,
     y: 0,
     initialized: false,
 
     update: function () {
-        const level = window.world.currentLevel;
+        const level = window.game.world ? window.game.world.currentLevel : null;
         const player = window.game.player;
         if (!player || !level) return;
 
         // Проверка canvas
         if (!canvas || !canvas.width || !canvas.height || isNaN(canvas.height)) {
-            console.warn("camera: canvas not ready, calling recalcScene");
-            if (typeof recalcScene === 'function') recalcScene();
+            console.warn("camera: canvas not ready, calling rebuildWorld?");
+            if (typeof rebuildWorld === 'function') rebuildWorld();
             return;
         }
 

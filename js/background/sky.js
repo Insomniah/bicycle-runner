@@ -1,6 +1,6 @@
 const sky = {
     clouds: [],
-    windSpeed: 0.2,
+    windSpeed: CONFIG.SKY_WIND_SPEED,
 
     generate() {
         this.clouds = [];
@@ -18,7 +18,7 @@ const sky = {
                 y: minY + Math.random() * (maxY - minY),
                 w: size,
                 h: size * 0.4,
-                parallax: 0.2
+                parallax: CONFIG.SKY_PARALLAX
             });
         }
     },
@@ -28,7 +28,7 @@ const sky = {
         if (!level) return;
         for (const cloud of this.clouds) {
             cloud.x -= this.windSpeed;
-            const limit = level.width + 300;
+            const limit = level.width + CONFIG.SKY_CLOUD_WRAP_MARGIN;
             if (cloud.x < -cloud.w) {
                 cloud.x = limit;
             } else if (cloud.x > limit) {
@@ -41,7 +41,7 @@ const sky = {
         ctx.fillStyle = "rgba(208,232,255,0.9)";
         for (const cloud of this.clouds) {
             const x = cloud.x - camera.x * cloud.parallax;
-            if (x < -300 || x > canvas.width + 300) continue;
+            if (x < -CONFIG.SKY_CLOUD_WRAP_MARGIN || x > canvas.width + CONFIG.SKY_CLOUD_WRAP_MARGIN) continue;
             const y = cloud.y;
             ctx.fillRect(x, y, cloud.w, cloud.h);
             ctx.fillRect(x + cloud.w * 0.3, y - cloud.h * 0.3, cloud.w * 0.6, cloud.h);

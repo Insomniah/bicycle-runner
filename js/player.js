@@ -2,7 +2,7 @@
 
 window.game = window.game || {};
 window.game.player = {
-    x: 200,
+    x: CONFIG.PLAYER_START_X,
     y: 0,
     width: CONFIG.PLAYER_WIDTH,
     height: CONFIG.PLAYER_HEIGHT,
@@ -62,7 +62,7 @@ window.game.player = {
         const level = window.game.world.currentLevel;
         if (!level) return;
         this.y = level.getGroundBase() - this.height;
-        this.x = 200;
+        this.x = CONFIG.PLAYER_START_X;
         this.vy = 0;
         this.onGround = false;
         this.autoMove = false;
@@ -78,7 +78,7 @@ window.game.player = {
 
         const player = this;
         player.prevY = player.y;
-        const frame = Math.max(0.5, Math.min(dt * 60, 2));
+        const frame = Math.max(CONFIG.MIN_FRAME, Math.min(dt * 60, CONFIG.MAX_FRAME));
 
         const atFinish = player.x + player.width >= level.width - CONFIG.FINISH_THRESHOLD;
         if (atFinish && window.game.state.gameOver === false) {

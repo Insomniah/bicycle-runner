@@ -21,7 +21,7 @@ const mountains = {
         const imgW = this.img.width;
         const imgH = this.img.height;
         const groundY = level.getGroundBase();
-        const buryFactor = 0.4;
+        const buryFactor = CONFIG.MOUNTAINS_BURY_FACTOR;
         const y = groundY - imgH * (1 - buryFactor) - camera.y;
 
         let startX = Math.floor(camera.x / imgW) * imgW;

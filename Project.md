@@ -149,26 +149,42 @@ collision.js (модуль)
 Все настройки игры хранятся в js/config.js и доступны через window.CONFIG. Основные параметры:
 
 Категория	Параметр	Описание
-Игрок	PLAYER_WIDTH, PLAYER_HEIGHT	Размеры коллизии и отрисовки (пиксели)
-PLAYER_SPEED	Скорость перемещения
-PLAYER_GRAVITY	Сила гравитации
-PLAYER_JUMP_POWER	Начальная скорость прыжка
-PLAYER_FRAME_WIDTH, PLAYER_FRAME_HEIGHT	Размеры кадра в спрайте
+Игрок	PLAYER_WIDTH	Ширина коллизии и отрисовки игрока (px)
+PLAYER_HEIGHT	Высота коллизии и отрисовки игрока (px)
+PLAYER_SPEED	Скорость перемещения (px/сек)
+PLAYER_GRAVITY	Сила гравитации (px/сек²)
+PLAYER_JUMP_POWER	Начальная вертикальная скорость прыжка (px/сек)
+PLAYER_FRAME_WIDTH	Ширина кадра в спрайт-листе (px)
+PLAYER_FRAME_HEIGHT	Высота кадра в спрайт-листе (px)
 PLAYER_FRAME_COUNT	Количество кадров анимации
 PLAYER_FRAME_INTERVAL	Интервал смены кадров (сек)
+PLAYER_START_X	Начальная координата игрока по X (px)
 Камера	CAMERA_HORIZONTAL_OFFSET	Отступ камеры от игрока по горизонтали (0.35 = 35%)
 CAMERA_VERTICAL_SMOOTHING	Плавность следования по вертикали (0.05)
 CAMERA_GROUND_TARGET	Положение земли на экране (0.75 = 75% высоты)
-Физика	MAX_DT	Максимальный шаг времени (0.033 сек)
-FINISH_THRESHOLD	Расстояние до правого края для завершения уровня (5 px)
-AUTO_MOVE_EXTRA	Дополнительное расстояние после финиша (200 px)
-FALL_LIMIT_OFFSET	Нижняя граница падения (200 px ниже уровня)
-Управление	TOUCH_MOVE_ZONE_RADIUS, TOUCH_JUMP_ZONE_RADIUS	Радиусы тач-зон
-TOUCH_MOVE_ZONE_X, TOUCH_MOVE_ZONE_Y_OFFSET	Позиция левой зоны
-TOUCH_JUMP_ZONE_X_OFFSET, TOUCH_JUMP_ZONE_Y_OFFSET	Позиция правой зоны
-TOUCH_SWIPE_THRESHOLD	Минимальное смещение для определения движения
-Отладка	DEBUG_FONT, DEBUG_COLOR	Стиль текста отладки
-Уровни	LEVEL_SWITCH_DELAY	Задержка перед сменой уровня (2000 мс)
+Физика	MAX_DT	Максимальный шаг времени (сек), предотвращает проскок коллизий
+MIN_FRAME	Минимальный множитель для ограничения дельты времени (0.5)
+MAX_FRAME	Максимальный множитель для ограничения дельты времени (2)
+FINISH_THRESHOLD	Расстояние до правого края для завершения уровня (px)
+AUTO_MOVE_EXTRA	Дополнительное расстояние, которое игрок проезжает после финиша (px)
+FALL_LIMIT_OFFSET	Нижняя граница падения (px ниже уровня)
+Фон	SKY_CLOUD_WRAP_MARGIN	Запас для зацикливания облаков за краем уровня (px)
+SKY_WIND_SPEED	Скорость ветра (движение облаков, px/сек)
+SKY_PARALLAX	Коэффициент параллакса облаков (0.2)
+MOUNTAINS_BURY_FACTOR	Доля гор, утопленных в землю (0.4)
+ROCKS_PER_PLATFORM	Количество камней, генерируемых на одной платформе
+ROCKS_MARGIN	Отступ камней от краёв платформы (px)
+Управление	TOUCH_MOVE_ZONE_RADIUS	Радиус левой (движение) тач-зоны (px)
+TOUCH_JUMP_ZONE_RADIUS	Радиус правой (прыжок) тач-зоны (px)
+TOUCH_MOVE_ZONE_X	X-координата центра левой зоны (px)
+TOUCH_MOVE_ZONE_Y_OFFSET	Смещение левой зоны от нижнего края (px)
+TOUCH_JUMP_ZONE_X_OFFSET	Смещение правой зоны от правого края (px)
+TOUCH_JUMP_ZONE_Y_OFFSET	Смещение правой зоны от нижнего края (px)
+TOUCH_SWIPE_THRESHOLD	Минимальное смещение пальца для определения движения (px)
+Отладка	DEBUG_FONT	Шрифт для отладочной информации
+DEBUG_COLOR	Цвет текста отладки
+Уровни	LEVEL_SWITCH_DELAY	Задержка перед автоматической сменой уровня после финиша (мс)
+
 Система слоёв
 layers.js предоставляет глобальные функции addToLayer(layer, obj), clearLayer(layer), drawLayers(ctx, camera), работающие с внутренним объектом layers.
 

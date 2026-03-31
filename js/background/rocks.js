@@ -33,9 +33,9 @@ const rocks = {
         const level = window.game.world.currentLevel;
         if (!level || !level.groundPlatforms) return;
 
-        const margin = 10;
+        const margin = CONFIG.ROCKS_MARGIN;
         for (const platform of level.groundPlatforms) {
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < CONFIG.ROCKS_PER_PLATFORM; i++) {
                 const img = this.images[Math.floor(Math.random() * this.images.length)];
                 const w = img.width;
                 const h = img.height;

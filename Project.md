@@ -206,7 +206,9 @@ requestAnimationFrame(gameLoop), вычисление dt с ограничени
 
 Обработка game.state.gameOver:
 
-Если game.state.gameOver === "complete" – устанавливается game.player.autoMove = true, через CONFIG.LEVEL_SWITCH_DELAY вызывается window.game.world.setLevel(level2) (автоматически обновляет камни), rebuildWorld(), сброс флагов.
+Если game.state.gameOver === "complete" – устанавливается game.player.autoMove = true, через CONFIG.LEVEL_SWITCH_DELAY вызывается window.game.
+при gameOver === "complete" ограничение по правому краю не применяется, чтобы игрок мог свободно уехать за пределы уровня.
+world.setLevel(level2) (автоматически обновляет камни), rebuildWorld(), сброс флагов.
 
 Если game.state.gameOver === "fail" – показывается оверлей Game Over.
 

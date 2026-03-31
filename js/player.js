@@ -106,7 +106,7 @@ window.game.player = {
         player.onGround = onGround;
 
         if (player.x < 0) player.x = 0;
-        if (!player.autoMove && player.x + player.width > level.width) {
+        if (!player.autoMove && player.x + player.width > level.width && window.game.state.gameOver !== "complete") {
             player.x = level.width - player.width;
         }
 

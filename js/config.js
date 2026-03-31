@@ -3,17 +3,15 @@
 const CONFIG = {
     // Игрок
     // Исходные размеры видимой части персонажа на спрайте (в пикселях)
-    PLAYER_SRC_VISIBLE_X: 4,
+    PLAYER_SRC_VISIBLE_X: 0, // Cмещаем, если спрайт не полностью видимый
     PLAYER_SRC_VISIBLE_Y: 0,
-    PLAYER_SRC_VISIBLE_W: 8,
+    PLAYER_SRC_VISIBLE_W: 12,
     PLAYER_SRC_VISIBLE_H: 16,
     PLAYER_SCALE: 4, // масштаб для увеличения видимой части спрайта до нужного размера в игре
 
     // Вычисляемые итоговые размеры
     PLAYER_WIDTH: 0,
     PLAYER_HEIGHT: 0,
-    PLAYER_SPRITE_OFFSET_X: 0,      // Смещение спрайта игрока по X относительно его позиции (можно вычислять из видимой части)
-    PLAYER_SPRITE_OFFSET_Y: 0,     // Аналогично, лучше вычислять
 
     PLAYER_SPEED: 6,
     PLAYER_GRAVITY: 0.3,

@@ -43,7 +43,7 @@ window.game.player = {
         const drawX = this.x - camera.x;
         const drawY = this.y - camera.y;
 
-        const srcX = this.frameX * CONFIG.PLAYER_FRAME_WIDTH + CONFIG.PLAYER_SRC_VISIBLE_X;
+        const srcX = this.frameX * CONFIG.PLAYER_FRAME_WIDTH + CONFIG.PLAYER_SRC_VISIBLE_X; // Учитываем видимую часть спрайта
         const srcY = CONFIG.PLAYER_SRC_VISIBLE_Y;
         const srcW = CONFIG.PLAYER_SRC_VISIBLE_W;
         const srcH = CONFIG.PLAYER_SRC_VISIBLE_H;

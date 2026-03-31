@@ -11,6 +11,7 @@ window.game.world = {
         this.currentLevel = level;
 
         if (level.generate) level.generate();
+        if (window.rocks && window.rocks.generate) window.rocks.generate();
 
         if (window.game.player && window.game.player.initPosition) {
             window.game.player.initPosition();

@@ -107,7 +107,6 @@ window.game.world.mountains = mountains;
 
 loadAllImages().then(() => {
     window.game.world.setLevel(level1);
-    rocks.generate();
 
     addToLayer("background", skyBackground);
     addToLayer("background", sky);
@@ -157,7 +156,6 @@ function gameLoop(time) {
             setTimeout(() => {
                 console.log("switching level...");
                 window.game.world.setLevel(level2);
-                rocks.generate();
                 rebuildWorld();
                 state.gameOver = false;
                 state.nextLevelQueued = false;

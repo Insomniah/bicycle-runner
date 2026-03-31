@@ -127,6 +127,7 @@ loadAllImages().then(() => {
 let lastTime = performance.now();
 
 function gameLoop(time) {
+    // Вычисляем dt с ограничением для стабильности
     if (!gameLoop.lastTime) gameLoop.lastTime = time;
     let dt = (time - gameLoop.lastTime) / 1000;
     const maxDt = CONFIG.MAX_DT;
@@ -135,17 +136,19 @@ function gameLoop(time) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Обновляем все сущности и камеру
     if (window.game.camera && window.game.camera.update) window.game.camera.update();
     if (window.game.player && window.game.player.update) window.game.player.update(dt);
     if (window.game.world && window.game.world.update) window.game.world.update();
 
+    // Рисуем все слои и игрока
     drawLayers(ctx, window.game.camera);
     window.game.player.draw(ctx, window.game.camera);
     if (window.drawUI) drawUI();
     window.game.drawDebug();
 
-    const state = window.game.state;
-    if (state.gameOver) {
+    const state = window.game.state;    // Проверяем состояние игры после обновлений
+    if (state.gameOver) {               // Если игра закончена, показываем UI и планируем переход на следующий уровень
         if (window.game.gameOverUI && window.game.gameOverUI.show) {
             window.game.gameOverUI.show(state.gameOver === "complete");
         }

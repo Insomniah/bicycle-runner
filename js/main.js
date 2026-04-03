@@ -10,8 +10,9 @@ window.game.state = {
     nextLevelQueued: false,
     restarting: false,
     debugMode: false,
+    wheelsCollected: 0,   // добавлено
 };
-window.game.gameOverUI = window.gameOverUI; // присвоим позже
+window.game.gameOverUI = window.gameOverUI;
 
 function loadImage(src) {
     return new Promise((resolve, reject) => {
@@ -43,6 +44,12 @@ async function loadAllImages() {
             })
         );
     }
+    // Загрузка спрайта колёс
+    promises.push(
+        loadImage("assets/objects/wheel.png").then(img => {
+            window.wheelSprite = img;
+        })
+    );
 
     try {
         await Promise.all(promises);
@@ -72,6 +79,7 @@ window.game.restart = function() {
         window.game.player.moveRight = false;
 
         state.gameOver = false;
+        state.wheelsCollected = 0;   // сброс счётчика
         if (window.game.gameOverUI && window.game.gameOverUI.hide) {
             window.game.gameOverUI.hide();
         }
@@ -83,7 +91,7 @@ window.game.restart = function() {
 window.game.drawDebug = function() {
     if (!ctx) return;
     const debugMode = window.game.state.debugMode;
-    if (!debugMode) return; // ничего не рисуем, если отладка выключена
+    if (!debugMode) return;
 
     ctx.fillStyle = CONFIG.DEBUG_COLOR;
     ctx.font = CONFIG.DEBUG_FONT;
@@ -99,7 +107,6 @@ window.game.drawDebug = function() {
     const rightX = x + player.width;
     const bottomY = y + player.height;
 
-    // Отрисовка полупрозрачного хитбокса
     ctx.save();
     ctx.globalAlpha = 0.2;
     ctx.fillStyle = "lime";
@@ -113,15 +120,23 @@ window.game.drawDebug = function() {
         `PLAYER: x=${player.x.toFixed(1)}, y=${player.y.toFixed(1)}, vy=${player.vy.toFixed(2)}, onGround=${player.onGround}`,
         `LEVEL: ${level.number} Size: ${level.width} X ${level.height}`,
         `GAME: ${window.game.state.gameOver || "running"}`,
-        `HITBOX: left=${x.toFixed(1)}, top=${y.toFixed(1)}, right=${rightX.toFixed(1)}, bottom=${bottomY.toFixed(1)}, width=${player.width}, height=${player.height}`
+        `HITBOX: left=${x.toFixed(1)}, top=${y.toFixed(1)}, right=${rightX.toFixed(1)}, bottom=${bottomY.toFixed(1)}, width=${player.width}, height=${player.height}`,
+        `COYOTE: ${player.coyoteTimer.toFixed(3)}`
     ];
 
     lines.forEach((line, i) => {
         ctx.fillText(line, 10, 20 + i * 18);
     });
-
-    lines.push(`COYOTE: ${player.coyoteTimer.toFixed(3)}`);
 };
+
+// Отрисовка счётчика колёс
+function drawWheelCounter() {
+    if (!ctx) return;
+    ctx.fillStyle = "white";
+    ctx.font = "24px monospace";
+    ctx.textAlign = "right";
+    ctx.fillText(`🔄 ${window.game.state.wheelsCollected}`, canvas.width - 20, 40);
+}
 
 // ===============================
 // Инициализация мира и уровней
@@ -131,6 +146,7 @@ window.game.world.mountains = mountains;
 
 loadAllImages().then(() => {
     window.game.world.setLevel(level1);
+    window.game.state.wheelsCollected = 0;
 
     addToLayer("background", skyBackground);
     addToLayer("background", sky);
@@ -151,7 +167,6 @@ loadAllImages().then(() => {
 let lastTime = performance.now();
 
 function gameLoop(time) {
-    // Вычисляем dt с ограничением для стабильности
     if (!gameLoop.lastTime) gameLoop.lastTime = time;
     let dt = (time - gameLoop.lastTime) / 1000;
     const maxDt = CONFIG.MAX_DT;
@@ -160,19 +175,21 @@ function gameLoop(time) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Обновляем все сущности и камеру
+    // Обновления
     if (window.game.camera && window.game.camera.update) window.game.camera.update();
     if (window.game.player && window.game.player.update) window.game.player.update(dt);
-    if (window.game.world && window.game.world.update) window.game.world.update();
+    if (window.game.world && window.game.world.update) window.game.world.update(dt);   // передаём dt
 
-    // Рисуем все слои и игрока
+    // Отрисовка
     drawLayers(ctx, window.game.camera);
+    if (window.game.world && window.game.world.drawWheels) window.game.world.drawWheels(ctx, window.game.camera);
     window.game.player.draw(ctx, window.game.camera);
     if (window.drawUI) drawUI();
+    drawWheelCounter();          // счётчик
     window.game.drawDebug();
 
-    const state = window.game.state;    // Проверяем состояние игры после обновлений
-    if (state.gameOver) {               // Если игра закончена, показываем UI и планируем переход на следующий уровень
+    const state = window.game.state;
+    if (state.gameOver) {
         if (window.game.gameOverUI && window.game.gameOverUI.show) {
             window.game.gameOverUI.show(state.gameOver === "complete");
         }
@@ -186,6 +203,7 @@ function gameLoop(time) {
                 rebuildWorld();
                 state.gameOver = false;
                 state.nextLevelQueued = false;
+                state.wheelsCollected = 0;   // сброс при переключении
                 if (window.game.gameOverUI && window.game.gameOverUI.hide) {
                     window.game.gameOverUI.hide();
                 }

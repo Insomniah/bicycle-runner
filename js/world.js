@@ -9,8 +9,8 @@ window.game.world = {
     setLevel(level) {
         if (!level) return;
         this.currentLevel = level;
-
         if (level.generate) level.generate();
+        this.generateWheels(level);
         if (window.rocks && window.rocks.generate) window.rocks.generate();
 
         if (window.game.player && window.game.player.initPosition) {
@@ -30,6 +30,8 @@ window.game.world = {
 
         window.game.state.gameOver = false;
         console.log(`Switched to level: ${level === window.level1 ? "level1" : "level2"}`);
+
+            if (level.generate) level.generate();
     },
 
     getGroundBase() {
@@ -43,13 +45,34 @@ window.game.world = {
         return 0;
     },
 
-    update() {
+    generateWheels(level) {
+        if (!level.wheelsData) return;
+        level.wheels = [];
+        for (const w of level.wheelsData) {
+            level.wheels.push(new Wheel(w.x, w.y));
+        }
+    },
+
+    update(dt) {
         if (this.sky && this.sky.update) this.sky.update();
         if (this.mountains && this.mountains.update) this.mountains.update();
+        if (this.currentLevel && this.currentLevel.wheels) {
+            for (const wheel of this.currentLevel.wheels) {
+                if (wheel.update) wheel.update(dt);
+            }
+        }
     },
 
     draw(ctx, camera) {
         if (this.sky && this.sky.draw) this.sky.draw(ctx, camera);
         if (this.mountains && this.mountains.draw) this.mountains.draw(ctx, camera);
+    },
+
+    drawWheels(ctx, camera) {
+        if (this.currentLevel && this.currentLevel.wheels) {
+            for (const wheel of this.currentLevel.wheels) {
+                wheel.draw(ctx, camera);
+            }
+        }
     }
 };

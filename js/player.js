@@ -105,6 +105,17 @@ window.game.player = {
             return;
         }
 
+        if (level && level.wheels) {
+            for (let i = 0; i < level.wheels.length; i++) {
+                const wheel = level.wheels[i];
+                if (wheel.collect(this)) {
+                    window.game.state.wheelsCollected++;
+                    level.wheels.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+
         const player = this;
         player.prevY = player.y;
         const frame = Math.max(CONFIG.MIN_FRAME, Math.min(dt * 60, CONFIG.MAX_FRAME));

@@ -47,6 +47,14 @@ const CONFIG = {
     ROCKS_PER_PLATFORM: 4,
     ROCKS_MARGIN: 10,
 
+    // Колёса
+    WHEEL_FRAME_W: 216,              // ширина одного кадра в спрайт-листе (пиксели)
+    WHEEL_SPRITE_SRC_Y: 0,           // смещение по Y (вся высота используется)
+    WHEEL_SPRITE_SRC_H: 203,         // высота видимой части колеса в спрайт-листе
+    WHEEL_FRAME_COUNT: 7,            // количество кадров анимации
+    WHEEL_FRAME_INTERVAL: 0.1,       // интервал смены кадров (сек)
+    WHEEL_DRAW_SIZE: 32,             // размер отрисовки на экране (пиксели)
+
     // Управление
     TOUCH_MOVE_ZONE_RADIUS: 100,
     TOUCH_JUMP_ZONE_RADIUS: 80,

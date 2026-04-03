@@ -41,8 +41,8 @@ async function loadAllImages() {
     loadImage(CONFIG.BACKGROUND_MOUNTAINS).then(img => {
       window.preloadedBackgrounds[CONFIG.BACKGROUND_MOUNTAINS] = img;
       // Если текущий mountains ещё не имеет изображения – установим
-      if (mountains && !mountains.loaded) {
-        mountains.setImage(img, CONFIG.BACKGROUND_MOUNTAINS);
+      if (background && !background.loaded) {
+        background.setImage(img, CONFIG.BACKGROUND_MOUNTAINS);
       }
     })
   );
@@ -159,12 +159,12 @@ function drawWheelCounter() {
 // Инициализация мира и уровней
 // ===============================
 window.game.world.sky = sky;
-window.game.world.mountains = mountains;
+window.game.world.mountains = background;
 
 loadAllImages().then(() => {
   // Убедимся, что у mountains есть изображение (если ещё не установлено)
-  if (mountains && !mountains.loaded && window.preloadedBackgrounds[CONFIG.BACKGROUND_MOUNTAINS]) {
-    mountains.setImage(window.preloadedBackgrounds[CONFIG.BACKGROUND_MOUNTAINS], CONFIG.BACKGROUND_MOUNTAINS);
+  if (background && !background.loaded && window.preloadedBackgrounds[CONFIG.BACKGROUND_MOUNTAINS]) {
+    background.setImage(window.preloadedBackgrounds[CONFIG.BACKGROUND_MOUNTAINS], CONFIG.BACKGROUND_MOUNTAINS);
   }
 
   window.game.world.setLevel(level1);
@@ -172,7 +172,7 @@ loadAllImages().then(() => {
 
   addToLayer("background", skyBackground);
   addToLayer("background", sky);
-  addToLayer("background", mountains);
+  addToLayer("background", background);
   addToLayer("midground", rocks);
 
   resizeCanvas();

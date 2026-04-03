@@ -1,6 +1,6 @@
-// mountains.js – фон гор/заводов (тайлинг с параллаксом, с поддержкой масштаба)
+// background.js – фон гор/заводов (тайлинг с параллаксом, с поддержкой масштаба)
 
-const mountains = {
+const background = {
   img: null,
   loaded: false,
   currentSrc: null,

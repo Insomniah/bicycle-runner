@@ -90,6 +90,10 @@ window.game.restart = function() {
     window.game.world.currentLevel.generate();
     rocks.generate();
     rebuildWorld();
+    
+    // ПЕРЕСОЗДАЁМ КОЛЁСА
+    window.game.world.generateWheels(window.game.world.currentLevel);
+    
     window.game.player.initPosition();
 
     window.game.player.autoMove = false;

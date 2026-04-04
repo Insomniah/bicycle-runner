@@ -1,24 +1,21 @@
-// player.js – модуль игрока (рефакторинг: чистая функция физики)
+// player.js – модуль игрока с поддержкой конечного автомата
 import { handleCollisions } from './collision.js';
 import { eventBus } from './core/eventBus.js';
+import { gameState, GameState } from './core/stateMachine.js';
 
-// Чистая функция: вычисляет новое состояние игрока на основе текущего состояния, ввода, уровня и dt
-// Возвращает новый объект состояния и дополнительные флаги (gameOverTrigger, levelCompleteTrigger, wheelCollectedCount)
-export function updatePlayerPhysics(state, input, level, dt) {
-  // Копируем состояние, чтобы не мутировать оригинал
+// Чистая функция физики
+export function updatePlayerPhysics(state, input, level, dt, isGameActive) {
   let { x, y, vy, onGround, autoMove, moveLeft, moveRight, prevY, coyoteTimer, wasOnGround, frameX, frameTimer } = state;
   let wheelsCollectedDelta = 0;
   let levelCompleteTrigger = false;
   let gameOverTrigger = false;
 
-  // Предыдущая позиция для коллизий
   const newPrevY = y;
 
-  // Сбор колёс (проверка на мутацию уровня, но уровень не копируем – позже можно вынести)
+  // Сбор колёс
   if (level.wheels) {
     for (let i = 0; i < level.wheels.length; i++) {
       const wheel = level.wheels[i];
-      // Используем текущие координаты игрока для проверки
       if (wheel.collect({ x, y, width: state.width, height: state.height })) {
         wheelsCollectedDelta++;
         level.wheels.splice(i, 1);
@@ -28,14 +25,15 @@ export function updatePlayerPhysics(state, input, level, dt) {
   }
 
   // Проверка завершения уровня
-  if (x + state.width >= level.width - CONFIG.FINISH_THRESHOLD && !window.game.state.gameOver) {
+  if (isGameActive && x + state.width >= level.width - CONFIG.FINISH_THRESHOLD) {
     levelCompleteTrigger = true;
     autoMove = true;
   }
 
-  // Горизонтальное движение
   const frame = Math.max(CONFIG.MIN_FRAME, Math.min(dt * 60, CONFIG.MAX_FRAME));
-  if (!window.game.state.gameOver) {
+
+  // Горизонтальное движение
+  if (isGameActive && !levelCompleteTrigger) {
     if (moveLeft) x -= state.speed * frame;
     if (moveRight) x += state.speed * frame;
   } else if (levelCompleteTrigger && autoMove) {
@@ -46,16 +44,12 @@ export function updatePlayerPhysics(state, input, level, dt) {
     moveRight = false;
   }
 
-  // Гравитация и вертикальное движение
+  // Гравитация
   vy += state.gravity * frame;
   y += vy * frame;
 
-  // Создаём временный объект игрока для коллизий (не мутируем оригинал)
-  const tempPlayer = {
-    x, y, vy, width: state.width, height: state.height, prevY: newPrevY
-  };
+  const tempPlayer = { x, y, vy, width: state.width, height: state.height, prevY: newPrevY };
   const { onGround: newOnGround } = handleCollisions(tempPlayer, level);
-  // Применяем изменения, возвращённые коллизиями (tempPlayer изменён)
   x = tempPlayer.x;
   y = tempPlayer.y;
   vy = tempPlayer.vy;
@@ -77,14 +71,12 @@ export function updatePlayerPhysics(state, input, level, dt) {
     x = level.width - state.width;
   }
 
-  // Падение за пределы уровня
+  // Падение
   const bottomLimit = level.height + CONFIG.FALL_LIMIT_OFFSET;
   if (y > bottomLimit) {
     y = bottomLimit;
     vy = 0;
-    if (!window.game.state.gameOver) {
-      gameOverTrigger = true;
-    }
+    if (isGameActive) gameOverTrigger = true;
     moveLeft = false;
     moveRight = false;
   }
@@ -97,7 +89,6 @@ export function updatePlayerPhysics(state, input, level, dt) {
     newFrameX = (frameX + 1) % state.frameCount;
   }
 
-  // Возвращаем новое состояние и флаги
   return {
     newState: {
       x, y, vy, onGround: newOnGround, autoMove, moveLeft, moveRight,
@@ -110,7 +101,6 @@ export function updatePlayerPhysics(state, input, level, dt) {
   };
 }
 
-// Объект игрока (мутабельный, но обновляется через чистую функцию)
 export const player = {
   x: CONFIG.PLAYER_START_X,
   y: 0,
@@ -138,7 +128,7 @@ export const player = {
   wasOnGround: false,
 
   jump() {
-    const canJump = (this.onGround || this.coyoteTimer > 0) && window.game.state.gameOver === false;
+    const canJump = (this.onGround || this.coyoteTimer > 0) && gameState.state === GameState.PLAYING;
     if (canJump) {
       this.vy = this.jumpPower;
       this.onGround = false;
@@ -186,7 +176,6 @@ export const player = {
     const level = window.game.world.currentLevel;
     if (!level) return;
 
-    // Подготовка входных данных для чистой функции
     const input = {
       moveLeft: this.moveLeft,
       moveRight: this.moveRight,
@@ -200,11 +189,11 @@ export const player = {
       width: this.width, height: this.height, speed: this.speed, gravity: this.gravity,
       frameCount: this.frameCount, frameInterval: this.frameInterval
     };
+    const isGameActive = (gameState.state === GameState.PLAYING);
 
     const { newState, wheelsCollectedDelta, levelCompleteTrigger, gameOverTrigger } =
-      updatePlayerPhysics(state, input, level, dt);
+      updatePlayerPhysics(state, input, level, dt, isGameActive);
 
-    // Применяем новое состояние
     this.x = newState.x;
     this.y = newState.y;
     this.vy = newState.vy;
@@ -218,21 +207,15 @@ export const player = {
     this.frameX = newState.frameX;
     this.frameTimer = newState.frameTimer;
 
-    // Обработка событий
     if (wheelsCollectedDelta > 0) {
       window.game.state.wheelsCollected += wheelsCollectedDelta;
       eventBus.emit('wheel.collected', { count: window.game.state.wheelsCollected });
     }
-    if (levelCompleteTrigger && !window.game.state.gameOver) {
-      window.game.state.gameOver = "complete";
-      this.autoMove = true;
-      console.log("Level finished! gameOver set to 'complete'");
-      eventBus.emit('level.complete');
+    if (levelCompleteTrigger) {
+      gameState.transition('complete');
     }
-    if (gameOverTrigger && !window.game.state.gameOver) {
-      window.game.state.gameOver = "fail";
-      console.log("Player fell off level, gameOver = fail");
-      eventBus.emit('game.over', { reason: 'fall' });
+    if (gameOverTrigger) {
+      gameState.transition('fail');
     }
   }
 };

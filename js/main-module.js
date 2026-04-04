@@ -1,6 +1,7 @@
 // main-module.js – точка входа в игру (модуль)
 import { resizeCanvas, rebuildWorld } from './core/canvas.js';
 import { addToLayer, drawLayers } from './core/layers.js';
+import { assetManager } from './core/assetManager.js';
 import { world } from './world.js';
 import { player } from './player.js';
 import { camera } from './camera.js';
@@ -26,49 +27,8 @@ window.game.player = player;
 window.game.world = world;
 window.game.camera = camera;
 window.game.gameOverUI = gameOverUI;
-window.preloadedBackgrounds = {};
 
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
-  });
-}
-
-async function loadAllImages() {
-  // Игрок
-  const playerImg = await loadImage("assets/player/player.png");
-  player.sprite = playerImg;
-
-  // Фоны
-  const mountainsImg = await loadImage(CONFIG.BACKGROUND_MOUNTAINS);
-  window.preloadedBackgrounds[CONFIG.BACKGROUND_MOUNTAINS] = mountainsImg;
-  background.setImage(mountainsImg, CONFIG.BACKGROUND_MOUNTAINS);
-
-  const factoriesImg = await loadImage(CONFIG.BACKGROUND_FACTORIES);
-  window.preloadedBackgrounds[CONFIG.BACKGROUND_FACTORIES] = factoriesImg;
-
-  // Камни
-  const rockPromises = decorations.rockTypes.map(t => loadImage(t.src));
-  const rockImages = await Promise.all(rockPromises);
-  decorations.setRockImages(rockImages);
-
-  // Шины
-  const tirePromises = decorations.tireTypes.map(t => loadImage(t.src));
-  const tireImages = await Promise.all(tirePromises);
-  decorations.setTireImages(tireImages);
-
-  // Колёса
-  const wheelImg = await loadImage("assets/objects/wheel.png");
-  window.wheelSprite = wheelImg;
-
-  console.log("All images loaded");
-  decorations.loaded = true;
-  if (world.currentLevel) decorations.generate();
-}
-
+// Функция перезапуска (оставляем без изменений)
 window.game.restart = function() {
   const state = window.game.state;
   if (state.restarting) return;
@@ -91,6 +51,7 @@ window.game.restart = function() {
   }
 };
 
+// Отладка
 window.game.drawDebug = function() {
   if (!ctx || !window.game.state.debugMode) return;
   const player = window.game.player;
@@ -143,9 +104,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   world.sky = sky;
   world.background = background;
 
-  await loadAllImages();
+  await assetManager.loadAllAssets();
 
-  // Уровни должны быть глобальными (подключены в HTML)
+  // Убедимся, что спрайт игрока установлен (assetManager уже сделал это, но подстрахуемся)
+  if (!player.sprite) player.sprite = assetManager.get('player');
+  // Установка фоновых изображений для объекта background
+  const mountainsImg = assetManager.get('mountains_bg');
+  if (mountainsImg && background && !background.loaded) {
+    background.setImage(mountainsImg, CONFIG.BACKGROUND_MOUNTAINS);
+  }
+  // factories_bg не устанавливаем, он подгрузится при смене уровня
+
   world.setLevel(level1);
   window.game.state.wheelsCollected = 0;
 

@@ -45,7 +45,7 @@ export const world = {
     if (this.sky && this.sky.generate) this.sky.generate();
 
     window.game.state.gameOver = false;
-    console.log(`Switched to level: ${level === window.level1 ? "level1" : "level2"}`);
+    console.log(`Switched to level: ${level.number}`);
   },
 
   getGroundBase() {

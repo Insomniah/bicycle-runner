@@ -112,6 +112,10 @@ eventBus.on('state.playing', () => {
   // Можно добавить логику при возобновлении игры
 });
 
+eventBus.on('game.restart', () => {
+  window.game.restart();
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
   resizeCanvas();
   world.sky = sky;

@@ -4,17 +4,9 @@ import { rebuildWorld } from './core/canvas.js';
 import { player } from './player.js';
 import { world } from './world.js';
 
-// Чистая функция: вычисляет новую позицию камеры
 export function calculateCameraPosition({
-  playerX,
-  playerY,
-  levelWidth,
-  canvasWidth,
-  canvasHeight,
-  groundY,
-  isInitialized,
-  currentY,
-  smoothing = CONFIG.CAMERA_VERTICAL_SMOOTHING
+  playerX, playerY, levelWidth, canvasWidth, canvasHeight,
+  groundY, isInitialized, currentY, smoothing = CONFIG.CAMERA_VERTICAL_SMOOTHING
 }) {
   let newX = playerX - canvasWidth * CONFIG.CAMERA_HORIZONTAL_OFFSET;
   if (newX < 0) newX = 0;
@@ -22,10 +14,7 @@ export function calculateCameraPosition({
 
   const desiredGround = canvasHeight * CONFIG.CAMERA_GROUND_TARGET;
   const minCameraY = groundY - desiredGround;
-
-  let newY;
-  let newInitialized = isInitialized;
-
+  let newY, newInitialized = isInitialized;
   if (!isInitialized) {
     newY = minCameraY;
     newInitialized = true;
@@ -34,7 +23,6 @@ export function calculateCameraPosition({
     newY = currentY + (targetY - currentY) * smoothing;
     if (newY > minCameraY) newY = minCameraY;
   }
-
   return { x: newX, y: newY, initialized: newInitialized };
 }
 
@@ -52,12 +40,10 @@ export const camera = {
       if (typeof rebuildWorld === 'function') rebuildWorld();
       return;
     }
-
     if (typeof player.y !== 'number' || isNaN(player.y)) {
       console.warn("camera: player.y is NaN, skipping update");
       return;
     }
-
     const groundY = level.getGroundBase();
     if (typeof groundY !== 'number' || isNaN(groundY)) {
       console.error("Invalid groundY:", groundY);
@@ -72,8 +58,7 @@ export const camera = {
       canvasHeight: canvas.height,
       groundY: groundY,
       isInitialized: this.initialized,
-      currentY: this.y,
-      smoothing: CONFIG.CAMERA_VERTICAL_SMOOTHING
+      currentY: this.y
     });
 
     this.x = newPos.x;
@@ -82,6 +67,5 @@ export const camera = {
   }
 };
 
-// Для обратной совместимости (если что-то ещё использует window.game.camera)
 window.game = window.game || {};
 window.game.camera = camera;

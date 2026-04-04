@@ -1,4 +1,6 @@
-// game.js – глобальные объекты canvas и UI (модуль)
+// game.js – глобальные объекты canvas и UI (внедрение зависимостей)
+import { eventBus } from './core/eventBus.js';
+
 export const canvas = document.getElementById("gameCanvas");
 export const ctx = canvas.getContext("2d");
 window.DEBUG = true;
@@ -8,11 +10,7 @@ function updateRotateNotice() {
   if (!notice) return;
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  if (vh > vw) {
-    notice.style.display = "flex";
-  } else {
-    notice.style.display = "none";
-  }
+  notice.style.display = vh > vw ? "flex" : "none";
 }
 updateRotateNotice();
 
@@ -26,8 +24,7 @@ export const gameOverUI = {
     this.text = document.getElementById("game-over-text");
     this.button = document.getElementById("restart-button");
     this.button.addEventListener("click", () => {
-      window.game.restart();
-      this.hide();
+      eventBus.emit('game.restart');
     });
   },
 
@@ -44,9 +41,6 @@ export const gameOverUI = {
   },
 };
 
-window.game = window.game || {};
-window.game.gameOverUI = gameOverUI;
-
 function setRealVH() {
   const vh = window.innerHeight * 0.01;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
@@ -59,6 +53,7 @@ window.addEventListener("orientationchange", updateRotateNotice);
 
 gameOverUI.init();
 
-// Для обратной совместимости
 window.canvas = canvas;
 window.ctx = ctx;
+window.game = window.game || {};
+window.game.gameOverUI = gameOverUI;

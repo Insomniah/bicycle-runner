@@ -27,54 +27,47 @@ function loadImage(src) {
 }
 
 async function loadAllImages() {
-  const promises = [];
+  // Загрузка игрока
+  const playerImg = await loadImage("assets/player/player.png");
+  window.game.player.sprite = playerImg;
 
-  // Игрок
-  promises.push(
-    loadImage("assets/player/player.png").then(img => {
-      window.game.player.sprite = img;
-    })
-  );
-
-  // Фоновые изображения (горы и заводы)
-  promises.push(
-    loadImage(CONFIG.BACKGROUND_MOUNTAINS).then(img => {
-      window.preloadedBackgrounds[CONFIG.BACKGROUND_MOUNTAINS] = img;
-      // Если текущий mountains ещё не имеет изображения – установим
-      if (background && !background.loaded) {
-        background.setImage(img, CONFIG.BACKGROUND_MOUNTAINS);
-      }
-    })
-  );
-
-  promises.push(
-    loadImage(CONFIG.BACKGROUND_FACTORIES).then(img => {
-      window.preloadedBackgrounds[CONFIG.BACKGROUND_FACTORIES] = img;
-    })
-  );
-
-  // Камни
-  for (const type of rocks.rockTypes) {
-    promises.push(
-      loadImage(type.src).then(img => {
-        rocks.images.push(img);
-      })
-    );
+  // Загрузка фонов
+  const mountainsImg = await loadImage(CONFIG.BACKGROUND_MOUNTAINS);
+  window.preloadedBackgrounds[CONFIG.BACKGROUND_MOUNTAINS] = mountainsImg;
+  if (background && !background.loaded) {
+    background.setImage(mountainsImg, CONFIG.BACKGROUND_MOUNTAINS);
   }
 
-  // Колёса
-  promises.push(
-    loadImage("assets/objects/wheel.png").then(img => {
-      window.wheelSprite = img;
-    })
-  );
+  const factoriesImg = await loadImage(CONFIG.BACKGROUND_FACTORIES);
+  window.preloadedBackgrounds[CONFIG.BACKGROUND_FACTORIES] = factoriesImg;
 
-  try {
-    await Promise.all(promises);
-    console.log("All images loaded");
-    rocks.loaded = true;
-  } catch (err) {
-    console.error("Failed to load some images", err);
+  // Загрузка камней
+  if (rocks.rockTypes && rocks.rockTypes.length) {
+    const rockPromises = rocks.rockTypes.map(type => loadImage(type.src));
+    const rockImages = await Promise.all(rockPromises);
+    rocks.rockImages = rockImages;
+    rocks.setRockImages(rockImages);
+  }
+
+  // Загрузка шин
+  if (rocks.tireTypes && rocks.tireTypes.length) {
+    const tirePromises = rocks.tireTypes.map(type => loadImage(type.src));
+    const tireImages = await Promise.all(tirePromises);
+    console.log('TIRES loaded, count:', tireImages.length);
+    rocks.tireImages = tireImages;
+    rocks.setTireImages(tireImages);
+  }
+
+  // Загрузка колёс
+  const wheelSpriteImg = await loadImage("assets/objects/wheel.png");
+  window.wheelSprite = wheelSpriteImg;
+
+  console.log("All images loaded");
+  rocks.loaded = true;
+
+  // Если уровень уже установлен, генерируем камни/шины
+  if (window.game.world && window.game.world.currentLevel) {
+    rocks.generate();
   }
 }
 
@@ -93,7 +86,6 @@ window.game.restart = function() {
     
     // ПЕРЕСОЗДАЁМ КОЛЁСА
     window.game.world.generateWheels(window.game.world.currentLevel);
-    
     window.game.player.initPosition();
 
     window.game.player.autoMove = false;
@@ -163,10 +155,10 @@ function drawWheelCounter() {
 // Инициализация мира и уровней
 // ===============================
 window.game.world.sky = sky;
-window.game.world.mountains = background;
+window.game.world.mountains = background; // world.js ожидает this.mountains
 
 loadAllImages().then(() => {
-  // Убедимся, что у mountains есть изображение (если ещё не установлено)
+  // Убедимся, что у background есть изображение (если ещё не установлено)
   if (background && !background.loaded && window.preloadedBackgrounds[CONFIG.BACKGROUND_MOUNTAINS]) {
     background.setImage(window.preloadedBackgrounds[CONFIG.BACKGROUND_MOUNTAINS], CONFIG.BACKGROUND_MOUNTAINS);
   }

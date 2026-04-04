@@ -4,53 +4,72 @@
 Игровой процесс
 2D платформер-раннер. Игрок управляет велосипедистом, собирает колёса и достигает правого края уровня. При касании правой границы уровень завершается, игрок автоматически движется вправо, и через 2 секунды загружается следующий уровень (level1 → level2). Падение вниз → Game Over с возможностью рестарта.
 
-Структура проекта (сокращённо)
+Структура проекта (актуальная)
 text
-js/
-├── config.js
-├── main.js                 # игровой цикл, предзагрузка, рестарт, debug
-├── game.js                 # canvas, gameOverUI
-├── world.js                # управление уровнем, фоном, колёсами
-├── player.js               # игрок: движение, анимация, сбор колёс
-├── collision.js            # столкновения с платформами
-├── camera.js               # камера
-├── controls.js             # клавиатура и тач
-├── core/canvas.js, layers.js
-├── entities/platform.js, wheel.js
-├── background/
-│   ├── skybackground.js    # заливка неба
-│   ├── sky.js              # облака
-│   ├── background.js       # горы/заводы (динамическая смена)
-│   └── rocks.js            # камни
-├── utils/math.js
-levels/level1.js, level2.js
-assets/ (player/, mountains/, industrial/, objects/, rocks/)
-Глобальные объекты
+bicycle-runner/
+├── index.html
+├── css/styles.css
+├── js/
+│   ├── config.js
+│   ├── main.js
+│   ├── game.js
+│   ├── world.js
+│   ├── player.js
+│   ├── collision.js
+│   ├── camera.js
+│   ├── controls.js
+│   ├── core/canvas.js, layers.js
+│   ├── entities/platform.js, wheel.js
+│   ├── scenery/            # бывшая папка background
+│   │   ├── background.js   # универсальный фон (горы/заводы)
+│   │   ├── rocks.js        # камни и шины
+│   │   ├── sky.js, skybackground.js
+│   └── utils/math.js
+├── levels/level1.js, level2.js
+└── assets/
+    ├── player/player.png
+    ├── mountains/mountains-bg.png
+    ├── industrial/factories-bg.png
+    ├── tires/tire-1.png, tire-2.png
+    ├── objects/wheel.png
+    └── rocks/*.png
+Ключевые глобальные объекты
 window.game – состояние (gameOver, debugMode, wheelsCollected), методы restart(), drawDebug().
 
 window.game.player – физика, прыжок, анимация, сбор колёс.
 
 window.game.world – текущий уровень, фон, платформы, генерация колёс.
 
-window.game.camera – следование за игроком с отступами.
+window.game.camera – следование за игроком.
 
 window.game.gameOverUI – оверлей окончания игры.
 
-background (глобальный объект) – универсальный фон с поддержкой смены текстуры и масштаба.
+background (объект) – универсальный фон с динамической сменой текстуры и масштабированием.
+
+rocks – декорации на земле: камни (уровень 1) или шины (уровень 2).
 
 Фон (динамическая смена)
-background.js предоставляет методы load(src) и setImage(img, src), а также учитывает масштаб из CONFIG.BACKGROUND_SCALE.
+background.js предоставляет методы load(src) и setImage(img, src), учитывает масштаб из CONFIG.BACKGROUND_SCALE.
 
 Уровни содержат поле backgroundImage (например, CONFIG.BACKGROUND_FACTORIES для level2).
 
-В world.setLevel() вызывается background.setImage() с предзагруженным изображением, что позволяет переключать фон (горы → заводы) без дополнительной загрузки.
+В world.setLevel() фон переключается автоматически.
+
+Декорации земли (камни / шины)
+rocks.js загружает два набора изображений: rockTypes и tireTypes.
+
+В generate() проверяется level.number === 2: для второго уровня используются шины, для первого – камни.
+
+Шины отрисовываются с масштабом 0.5 (уменьшены в 2 раза) и в большем количестве на платформу (8 вместо 4).
+
+Методы setRockImages() / setTireImages() получают изображения из main.js после предзагрузки.
 
 Данные уровней
 Каждый уровень (level1.js, level2.js) содержит:
 
 number, width, height, groundY
 
-platformData[] для платформ (x, offset, w, h)
+platformData[] для платформ
 
 wheelsData[] для позиций колёс
 
@@ -59,14 +78,16 @@ backgroundImage – путь к фону
 метод generate(), создающий platforms и groundPlatforms
 
 Предзагрузка и инициализация
-loadAllImages() загружает спрайты игрока, оба фона (BACKGROUND_MOUNTAINS, BACKGROUND_FACTORIES), камни и колёса. Результаты сохраняются в window.preloadedBackgrounds. После загрузки стартует игровой цикл.
+loadAllImages() загружает спрайты игрока, оба фона, камни, шины и колёса. Результаты сохраняются в window.preloadedBackgrounds и передаются в rocks. После загрузки стартует игровой цикл.
 
 Игровой цикл (main.js)
 Обновление: camera.update(), player.update(dt), world.update(dt).
 
-Отрисовка: слои (drawLayers), игрок, колёса, счётчик, отладка.
+Отрисовка: слои, игрок, колёса, счётчик, отладка.
 
 При gameOver === "complete" через задержку переключается уровень (вызов world.setLevel(level2)).
+
+При рестарте (падение в яму) вызывается generateWheels() для пересоздания колёс.
 
 Управление
 Клавиатура: стрелки / A/D – движение, пробел – прыжок.
@@ -80,16 +101,15 @@ loadAllImages() загружает спрайты игрока, оба фона 
 Конфигурация (config.js)
 Содержит все настройки: параметры игрока, камеры, физики, фона (пути к изображениям + BACKGROUND_SCALE), колёс, управления, отладки, задержку переключения уровней.
 
-Последние изменения (рефакторинг фона)
-Файл mountains.js переименован в background.js, объект mountains переименован в background.
+Последние изменения (рефакторинг и новые возможности)
+Динамическая смена фона – объект mountains переименован в background, папка background переименована в scenery. Фон переключается по полю backgroundImage в данных уровня.
 
-Добавлена динамическая смена фона по уровням через поле backgroundImage в данных уровня.
+Шины на втором уровне – в rocks.js добавлены tireTypes, логика выбора изображений по номеру уровня, масштабирование шин (0.5) и увеличенное количество.
 
-Реализована предзагрузка обоих фонов (горы и заводы) в loadAllImages() с кешированием в window.preloadedBackgrounds.
+Исправлен баг рестарта колёс – в window.game.restart() добавлен вызов generateWheels(), теперь колёса пересоздаются после падения в яму.
 
-В background.js добавлены методы load() и setImage(), а также поддержка масштабирования через CONFIG.BACKGROUND_SCALE (решает проблему разных размеров изображений).
+Предзагрузка шин – расширена функция loadAllImages() для загрузки tire-1.png и tire-2.png.
 
-В world.setLevel() автоматически переключается фон при смене уровня.
+Масштабирование фона – в background.js добавлена поддержка CONFIG.BACKGROUND_SCALE, позволяющая увеличивать/уменьшать фоновые изображения независимо.
 
-Обновлены level1.js (явно указан фон гор) и level2.js (фон заводов).
-
+Актуально на момент завершения работ по смене фона и добавлению шин.

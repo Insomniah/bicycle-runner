@@ -2,6 +2,7 @@
 import { resizeCanvas, rebuildWorld } from './core/canvas.js';
 import { addToLayer, drawLayers } from './core/layers.js';
 import { assetManager } from './core/assetManager.js';
+import { eventBus } from './core/eventBus.js';
 import { world } from './world.js';
 import { player } from './player.js';
 import { camera } from './camera.js';
@@ -27,8 +28,8 @@ window.game.player = player;
 window.game.world = world;
 window.game.camera = camera;
 window.game.gameOverUI = gameOverUI;
+window.game.eventBus = eventBus;
 
-// Функция перезапуска (оставляем без изменений)
 window.game.restart = function() {
   const state = window.game.state;
   if (state.restarting) return;
@@ -51,7 +52,6 @@ window.game.restart = function() {
   }
 };
 
-// Отладка
 window.game.drawDebug = function() {
   if (!ctx || !window.game.state.debugMode) return;
   const player = window.game.player;
@@ -106,14 +106,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await assetManager.loadAllAssets();
 
-  // Убедимся, что спрайт игрока установлен (assetManager уже сделал это, но подстрахуемся)
   if (!player.sprite) player.sprite = assetManager.get('player');
-  // Установка фоновых изображений для объекта background
   const mountainsImg = assetManager.get('mountains_bg');
   if (mountainsImg && background && !background.loaded) {
     background.setImage(mountainsImg, CONFIG.BACKGROUND_MOUNTAINS);
   }
-  // factories_bg не устанавливаем, он подгрузится при смене уровня
 
   world.setLevel(level1);
   window.game.state.wheelsCollected = 0;
@@ -124,6 +121,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   addToLayer("midground", decorations);
 
   rebuildWorld();
+
+  // Подписки на события
+  eventBus.on('level.complete', () => {
+    gameOverUI.show(true);
+    if (!window.game.state.nextLevelQueued && !window.game.state.restarting) {
+      window.game.state.nextLevelQueued = true;
+      setTimeout(() => {
+        world.setLevel(level2);
+        rebuildWorld();
+        window.game.state.gameOver = false;
+        window.game.state.nextLevelQueued = false;
+        window.game.state.wheelsCollected = 0;
+        gameOverUI.hide();
+      }, CONFIG.LEVEL_SWITCH_DELAY);
+    }
+  });
+
+  eventBus.on('game.over', () => {
+    gameOverUI.show(false);
+  });
 
   let lastTime = performance.now();
   function gameLoop(time) {
@@ -142,22 +159,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     drawUI();
     drawWheelCounter();
     window.game.drawDebug();
-
-    const state = window.game.state;
-    if (state.gameOver) {
-      gameOverUI.show(state.gameOver === "complete");
-      if (state.gameOver === "complete" && !state.nextLevelQueued && !state.restarting) {
-        state.nextLevelQueued = true;
-        setTimeout(() => {
-          world.setLevel(level2);
-          rebuildWorld();
-          state.gameOver = false;
-          state.nextLevelQueued = false;
-          state.wheelsCollected = 0;
-          gameOverUI.hide();
-        }, CONFIG.LEVEL_SWITCH_DELAY);
-      }
-    }
 
     requestAnimationFrame(gameLoop);
   }

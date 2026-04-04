@@ -1,4 +1,19 @@
 // scenery/background.js – универсальный фон (горы/заводы) с масштабированием (модуль)
+import { canvas } from '../game.js';
+
+// Чистая функция: возвращает массив участков для отрисовки (x, y, w, h)
+export function calculateBackgroundTiles(img, scale, cameraX, cameraY, groundY, canvasWidth, buryFactor) {
+  const imgW = img.width * scale;
+  const imgH = img.height * scale;
+  const y = groundY - imgH * (1 - buryFactor) - cameraY;
+  const startX = Math.floor(cameraX / imgW) * imgW;
+  const tiles = [];
+  for (let x = startX; x < cameraX + canvasWidth + imgW; x += imgW) {
+    tiles.push({ x: x - cameraX, y, w: imgW, h: imgH });
+  }
+  return tiles;
+}
+
 export const background = {
   img: null,
   loaded: false,
@@ -44,15 +59,14 @@ export const background = {
       scale = window.CONFIG.BACKGROUND_SCALE[this.currentSrc] || 1;
     }
 
-    const imgW = this.img.width * scale;
-    const imgH = this.img.height * scale;
     const groundY = level.getGroundBase();
-    const buryFactor = CONFIG.MOUNTAINS_BURY_FACTOR;
-    const y = groundY - imgH * (1 - buryFactor) - camera.y;
+    const tiles = calculateBackgroundTiles(
+      this.img, scale, camera.x, camera.y, groundY,
+      canvas.width, CONFIG.MOUNTAINS_BURY_FACTOR
+    );
 
-    let startX = Math.floor(camera.x / imgW) * imgW;
-    for (let x = startX; x < camera.x + canvas.width + imgW; x += imgW) {
-      ctx.drawImage(this.img, x - camera.x, y, imgW, imgH);
+    for (const tile of tiles) {
+      ctx.drawImage(this.img, tile.x, tile.y, tile.w, tile.h);
     }
   }
 };

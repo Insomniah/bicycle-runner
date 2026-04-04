@@ -1,4 +1,32 @@
-// scenery/decorations.js – камни и шины (модуль)
+// scenery/decorations.js – камни и шины (модуль) с чистой функцией генерации
+
+// Чистая функция: генерирует список декораций на основе параметров
+export function generateDecorationsList(groundPlatforms, isLevel2, rockImages, tireImages, config) {
+  const list = [];
+  const images = isLevel2 ? tireImages : rockImages;
+  if (!images.length) return list;
+
+  const scale = isLevel2 ? 0.2 : 1;
+  const margin = config.ROCKS_MARGIN;
+  const perPlatform = isLevel2 ? 4 : config.ROCKS_PER_PLATFORM;
+
+  for (const platform of groundPlatforms) {
+    for (let i = 0; i < perPlatform; i++) {
+      const img = images[Math.floor(Math.random() * images.length)];
+      const w = img.width * scale;
+      const h = img.height * scale;
+      const minX = platform.x + margin;
+      const maxX = platform.x + platform.width - w - margin;
+      if (maxX <= minX) continue;
+      const x = minX + Math.random() * (maxX - minX);
+      const y = platform.y - h;
+      list.push({ x, y, img, scale, w, h });
+    }
+  }
+  return list;
+}
+
+// Объект декораций (мутабельный, но использует чистую функцию)
 export const decorations = {
   list: [],
   rockTypes: [
@@ -26,31 +54,12 @@ export const decorations = {
   },
 
   generate() {
-    this.list = [];
     const level = window.game.world.currentLevel;
     if (!level || !level.groundPlatforms) return;
-
-    const useTires = (level.number === 2);
-    const images = useTires ? this.tireImages : this.rockImages;
+    const isLevel2 = (level.number === 2);
+    const images = isLevel2 ? this.tireImages : this.rockImages;
     if (!images.length) return;
-
-    const scale = useTires ? 0.2 : 1;
-    const margin = CONFIG.ROCKS_MARGIN;
-    const perPlatform = useTires ? 4 : CONFIG.ROCKS_PER_PLATFORM;
-
-    for (const platform of level.groundPlatforms) {
-      for (let i = 0; i < perPlatform; i++) {
-        const img = images[Math.floor(Math.random() * images.length)];
-        const w = img.width * scale;
-        const h = img.height * scale;
-        const minX = platform.x + margin;
-        const maxX = platform.x + platform.width - w - margin;
-        if (maxX <= minX) continue;
-        const x = minX + Math.random() * (maxX - minX);
-        const y = platform.y - h;
-        this.list.push({ x, y, img, scale, w, h });
-      }
-    }
+    this.list = generateDecorationsList(level.groundPlatforms, isLevel2, this.rockImages, this.tireImages, CONFIG);
   },
 
   draw(ctx, camera) {

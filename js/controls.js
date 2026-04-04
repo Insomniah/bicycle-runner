@@ -1,4 +1,4 @@
-// controls.js – модуль управления
+// controls.js – модуль управления (рефакторинг: чистые функции обработки ввода)
 import { canvas, ctx } from './game.js';
 
 export const input = {
@@ -17,39 +17,48 @@ function getGameCoords(clientX, clientY) {
   };
 }
 
-function handleTouch(e) {
-  e.preventDefault();
-
+// Чистая функция: обрабатывает список касаний и возвращает команды
+export function processTouches(touches, canvasWidth, canvasHeight, config) {
   let moveLeft = false;
   let moveRight = false;
   let jumpPressed = false;
 
-  for (const touch of e.touches) {
-    const pos = getGameCoords(touch.clientX, touch.clientY);
+  const moveZoneX = config.TOUCH_MOVE_ZONE_X;
+  const moveZoneY = canvasHeight - config.TOUCH_MOVE_ZONE_Y_OFFSET;
+  const moveRadius = config.TOUCH_MOVE_ZONE_RADIUS;
+  const swipeThreshold = config.TOUCH_SWIPE_THRESHOLD;
 
-    const moveZoneX = CONFIG.TOUCH_MOVE_ZONE_X;
-    const moveZoneY = canvas.height - CONFIG.TOUCH_MOVE_ZONE_Y_OFFSET;
+  const jumpZoneX = canvasWidth - config.TOUCH_JUMP_ZONE_X_OFFSET;
+  const jumpZoneY = canvasHeight - config.TOUCH_JUMP_ZONE_Y_OFFSET;
+  const jumpRadius = config.TOUCH_JUMP_ZONE_RADIUS;
+
+  for (const touch of touches) {
+    const pos = getGameCoords(touch.clientX, touch.clientY);
     const dxMove = pos.x - moveZoneX;
     const dyMove = pos.y - moveZoneY;
     const distanceMove = Math.sqrt(dxMove * dxMove + dyMove * dyMove);
-    if (distanceMove < CONFIG.TOUCH_MOVE_ZONE_RADIUS) {
-      if (dxMove < -CONFIG.TOUCH_SWIPE_THRESHOLD) moveLeft = true;
-      if (dxMove > CONFIG.TOUCH_SWIPE_THRESHOLD) moveRight = true;
+    if (distanceMove < moveRadius) {
+      if (dxMove < -swipeThreshold) moveLeft = true;
+      if (dxMove > swipeThreshold) moveRight = true;
     }
 
-    const jumpZoneX = canvas.width - CONFIG.TOUCH_JUMP_ZONE_X_OFFSET;
-    const jumpZoneY = canvas.height - CONFIG.TOUCH_JUMP_ZONE_Y_OFFSET;
     const dxJump = pos.x - jumpZoneX;
     const dyJump = pos.y - jumpZoneY;
     const distanceJump = Math.sqrt(dxJump * dxJump + dyJump * dyJump);
-    if (distanceJump < CONFIG.TOUCH_JUMP_ZONE_RADIUS) {
+    if (distanceJump < jumpRadius) {
       jumpPressed = true;
     }
   }
 
-  window.game.player.moveLeft = moveLeft;
-  window.game.player.moveRight = moveRight;
-  if (jumpPressed && window.game.player.onGround) {
+  return { moveLeft, moveRight, jumpPressed };
+}
+
+function handleTouch(e) {
+  e.preventDefault();
+  const commands = processTouches(e.touches, canvas.width, canvas.height, CONFIG);
+  window.game.player.moveLeft = commands.moveLeft;
+  window.game.player.moveRight = commands.moveRight;
+  if (commands.jumpPressed && window.game.player.onGround) {
     window.game.player.jump();
   }
 }

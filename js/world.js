@@ -1,7 +1,27 @@
-// world.js – управление уровнем и фоном
-
+// world.js – управление уровнем и фоном (рефакторинг: чистые функции)
 import { Wheel } from './entities/wheel.js';
 
+// Чистая функция: создаёт массив колёс из данных уровня
+export function generateWheelsFromData(wheelsData) {
+  if (!wheelsData) return [];
+  return wheelsData.map(w => new Wheel(w.x, w.y));
+}
+
+// Чистая функция: определяет, какой фон нужно установить для уровня
+export function resolveBackgroundImage(level, preloadedBackgrounds) {
+  if (level.backgroundImage) {
+    const cached = preloadedBackgrounds?.[level.backgroundImage];
+    if (cached) return { source: cached, useCached: true, src: level.backgroundImage };
+    else return { source: level.backgroundImage, useCached: false, src: level.backgroundImage };
+  } else {
+    const defaultBg = CONFIG.BACKGROUND_MOUNTAINS;
+    const cached = preloadedBackgrounds?.[defaultBg];
+    if (cached) return { source: cached, useCached: true, src: defaultBg };
+    else return { source: defaultBg, useCached: false, src: defaultBg };
+  }
+}
+
+// Объект мира (мутабельный, но использует чистые функции для генерации)
 export const world = {
   sky: null,
   background: null,
@@ -11,22 +31,27 @@ export const world = {
     if (!level) return;
     this.currentLevel = level;
     if (level.generate) level.generate();
-    this.generateWheels(level);
+
+    // Генерация колёс через чистую функцию
+    const newWheels = generateWheelsFromData(level.wheelsData);
+    level.wheels = newWheels;
+
     if (window.decorations && window.decorations.generate) window.decorations.generate();
 
+    // Смена фона
     if (this.background && level.backgroundImage) {
-      const cachedImg = window.preloadedBackgrounds?.[level.backgroundImage];
-      if (cachedImg) {
-        this.background.setImage(cachedImg, level.backgroundImage);
+      const bgInfo = resolveBackgroundImage(level, window.preloadedBackgrounds);
+      if (bgInfo.useCached) {
+        this.background.setImage(bgInfo.source, bgInfo.src);
       } else {
-        this.background.load(level.backgroundImage).catch(console.warn);
+        this.background.load(bgInfo.source).catch(console.warn);
       }
     } else if (this.background && !level.backgroundImage) {
-      const defaultBg = CONFIG.BACKGROUND_MOUNTAINS;
-      if (window.preloadedBackgrounds?.[defaultBg]) {
-        this.background.setImage(window.preloadedBackgrounds[defaultBg], defaultBg);
+      const bgInfo = resolveBackgroundImage(level, window.preloadedBackgrounds);
+      if (bgInfo.useCached) {
+        this.background.setImage(bgInfo.source, bgInfo.src);
       } else {
-        this.background.load(defaultBg);
+        this.background.load(bgInfo.source);
       }
     }
 
@@ -60,12 +85,9 @@ export const world = {
   },
 
   generateWheels(level) {
+    // Оставлен для обратной совместимости, но теперь использует чистую функцию
     if (!level.wheelsData) return;
-    level.wheels = [];
-    for (const w of level.wheelsData) {
-      // Используем глобальный класс Wheel (доступен из wheel.js)
-      level.wheels.push(new Wheel(w.x, w.y));
-    }
+    level.wheels = generateWheelsFromData(level.wheelsData);
   },
 
   update(dt) {
@@ -92,5 +114,6 @@ export const world = {
   },
 };
 
+// Для обратной совместимости
 window.game = window.game || {};
 window.game.world = world;

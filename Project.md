@@ -1,104 +1,88 @@
-# Project.md – актуальное состояние (конечный автомат + чистые функции)
+# Project.md – состояние на 05.04.2026
 
 ## Движок и технологии
-- Чистый JavaScript (ES6+) + HTML5 Canvas, без фреймворков.
-- **Модульная архитектура** – все файлы (кроме `config.js`) – ES6 модули.
-- **Конечный автомат (State Machine)** – управление состояниями игры: `PLAYING`, `LEVEL_COMPLETE`, `GAME_OVER`, `SWITCHING_LEVEL`.
-- **Событийная шина (Event Bus)** – слабосвязанная коммуникация между модулями.
-- **AssetManager** – централизованная загрузка и кеширование ресурсов.
-- **Чистые функции** – физика, генерация декораций, расчёт камеры, облаков, фона вынесены в отдельные функции без побочных эффектов.
-- Адаптация под мобильные устройства, предзагрузка ресурсов, ограничение dt.
-- Централизованная конфигурация в `config.js`.
+- Чистый JavaScript (ES6+) + HTML5 Canvas.
+- Модульная архитектура (ES6 modules).
+- Конечный автомат (State Machine) для управления игрой.
+- Событийная шина (Event Bus).
+- AssetManager для загрузки ресурсов.
+- Чистые функции в ключевых модулях.
+- Частичное внедрение зависимостей (DI) в `controls.js` и `world.js`.
 
-## Игровой процесс
-2D платформер-раннер. Игрок собирает колёса, достигает правого края → следующий уровень. Падение → Game Over с рестартом.
+## Реализованные архитектурные улучшения
 
-## Архитектурные решения
+### 1. Переход на модули ES6 ✅
+Все файлы (кроме `config.js`) – модули. Точка входа – `main-module.js` с `type="module"`.
 
-### Конечный автомат (State Machine)
-- Модуль `core/stateMachine.js` определяет состояния и допустимые переходы.
-- Состояния: `PLAYING`, `LEVEL_COMPLETE`, `GAME_OVER`, `SWITCHING_LEVEL`.
-- Переходы: `complete`, `fail`, `switch`, `start`, `restart`.
-- Игровой цикл больше не содержит флагов `gameOver`, `nextLevelQueued`, `restarting`.
-- Все реакции на смену состояния – через события `state.*`.
+### 2. Чистые функции ✅
+- `updatePlayerPhysics` (player.js)
+- `generateWheelsFromData`, `resolveBackgroundImage` (world.js)
+- `calculateCameraPosition` (camera.js)
+- `processTouches` (controls.js)
+- `generateDecorationsList` (decorations.js)
+- `calculateBackgroundTiles` (background.js)
+- `generateClouds`, `updateClouds`, `getCloudDrawParams` (sky.js)
 
-### Чистые функции
-- **`player.js`** – `updatePlayerPhysics` вычисляет новое состояние игрока.
-- **`world.js`** – `generateWheelsFromData`, `resolveBackgroundImage`.
-- **`camera.js`** – `calculateCameraPosition`.
-- **`controls.js`** – `processTouches`.
-- **`decorations.js`** – `generateDecorationsList`.
-- **`background.js`** – `calculateBackgroundTiles`.
-- **`sky.js`** – `generateClouds`, `updateClouds`, `getCloudDrawParams`.
+### 3. AssetManager ✅
+Загружает и кеширует все изображения, предоставляет доступ через `assetManager.get(key)`.
 
-### AssetManager
-- Загружает и кеширует все изображения (игрок, фоны, камни, шины, колёса).
-- Предоставляет доступ через `assetManager.get(key)`.
+### 4. Event Bus ✅
+Модуль `core/eventBus.js` с методами `on`, `off`, `emit`. Используется для событий `wheel.collected`, `level.complete`, `game.over`, а также для событий автомата `state.*`.
 
-## Структура проекта (модульная)
+### 5. Конечный автомат ✅
+Состояния: `PLAYING`, `LEVEL_COMPLETE`, `GAME_OVER`, `SWITCHING_LEVEL`. Переходы: `complete`, `fail`, `switch`, `start`, `restart`. Управляет игрой, заменив флаги `gameOver`, `nextLevelQueued`, `restarting`.
+
+### 6. Внедрение зависимостей (частично) 🟡
+- **Готово:** `controls.js` импортирует `player`, `gameState`; `world.js` импортирует `player`, `decorations`, `background`, `sky`, `gameState`, `eventBus`.
+- **Осталось:** `camera.js`, `main-module.js`, `player.js` (частично), `game.js` (UI) – продолжают использовать глобальные объекты `window.game.*`.
+
+### 7. Разделение на слои – не начиналось ❌
+### 8. Хранение уровней в JSON – не начиналось ❌
+### 9. Унификация анимаций – не начиналось ❌
+### 10. Тестирование – не начиналось ❌
+
+## Текущая структура проекта
 bicycle-runner/
 ├── index.html
 ├── css/styles.css
 ├── js/
-│ ├── config.js # глобальные константы
-│ ├── main-module.js # точка входа, подписки на события
-│ ├── game.js # canvas, ctx, gameOverUI
-│ ├── world.js # управление уровнем и фоном
-│ ├── player.js # игрок (чистая физика + автомат)
-│ ├── camera.js # камера (чистая функция)
-│ ├── collision.js # коллизии
-│ ├── controls.js # управление (чистая функция)
+│ ├── config.js
+│ ├── main-module.js
+│ ├── game.js
+│ ├── world.js
+│ ├── player.js
+│ ├── camera.js
+│ ├── collision.js
+│ ├── controls.js
 │ ├── core/
 │ │ ├── assetManager.js
 │ │ ├── canvas.js
 │ │ ├── layers.js
 │ │ ├── eventBus.js
-│ │ └── stateMachine.js # конечный автомат
+│ │ └── stateMachine.js
 │ ├── entities/
 │ │ ├── platform.js
 │ │ └── wheel.js
 │ ├── scenery/
 │ │ ├── skybackground.js
-│ │ ├── sky.js # облака (чистые функции)
-│ │ ├── background.js # фон (чистая функция)
-│ │ └── decorations.js # камни/шины (чистая функция)
+│ │ ├── sky.js
+│ │ ├── background.js
+│ │ └── decorations.js
 │ ├── levels/
 │ │ ├── level1.js
 │ │ └── level2.js
 │ └── utils/math.js
-└── assets/ (изображения)
+└── assets/...
 
 text
 
-## Ключевые особенности
-
-### Динамический фон
-- `background.js` загружает разные текстуры (горы, заводы) и масштабирует их.
-- Уровни содержат поле `backgroundImage`, которое используется в `world.setLevel()`.
-
-### Декорации (камни / шины)
-- На втором уровне (`level.number === 2`) отрисовываются шины (масштаб 0.2, больше объектов).
-- На первом – камни.
-
-### Цвет неба
-- Уровни могут определять `skyColor`. По умолчанию – `CONFIG.DEFAULT_SKY_COLOR` (чёрный).
-
-### Управление и отладка
-- Клавиатура (стрелки/A/D, пробел) + тач-зоны.
-- Клавиша `ё` включает хитбокс и отладочную информацию (теперь показывает текущее состояние автомата).
-
 ## Запуск
-1. Убедиться, что в `index.html` подключены только `config.js` и `main-module.js` (как модуль).
-2. Запустить Live Server.
-3. Игра работает на конечном автомате, событиях и чистых функциях.
+- `index.html` подключает `config.js` и `main-module.js` (как модуль).
+- Запустить Live Server.
 
-## Последние изменения
-- **Конечный автомат** – полностью заменил флаги состояния.
-- **Чистые функции** во всех ключевых модулях.
-- **Удалены глобальные флаги** `gameOver`, `nextLevelQueued`, `restarting`.
-- **Упрощён игровой цикл** – только отрисовка и обновление.
-- **Код полностью тестируемый** и готов к дальнейшему расширению.
+## Последний коммит
+Внедрение конечного автомата, чистых функций, частичного DI. Проект стабилен, готов к дальнейшему рефакторингу.
 
 ---
 
-*Актуально на 05.04.2026. Версия стабильна, архитектура завершена.*
+*Следующие шаги: завершить внедрение зависимостей (п.6), затем перейти к JSON-уровням (п.8).*

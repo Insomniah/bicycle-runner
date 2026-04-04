@@ -1,8 +1,10 @@
-// camera.js – модуль камеры (рефакторинг: чистая функция расчёта)
+// camera.js – модуль камеры (внедрение зависимостей)
 import { canvas } from './game.js';
 import { rebuildWorld } from './core/canvas.js';
+import { player } from './player.js';
+import { world } from './world.js';
 
-// Чистая функция: вычисляет новую позицию камеры на основе параметров
+// Чистая функция: вычисляет новую позицию камеры
 export function calculateCameraPosition({
   playerX,
   playerY,
@@ -14,7 +16,6 @@ export function calculateCameraPosition({
   currentY,
   smoothing = CONFIG.CAMERA_VERTICAL_SMOOTHING
 }) {
-  // Горизонталь
   let newX = playerX - canvasWidth * CONFIG.CAMERA_HORIZONTAL_OFFSET;
   if (newX < 0) newX = 0;
   if (newX > levelWidth - canvasWidth) newX = levelWidth - canvasWidth;
@@ -37,15 +38,13 @@ export function calculateCameraPosition({
   return { x: newX, y: newY, initialized: newInitialized };
 }
 
-// Объект камеры
 export const camera = {
   x: 0,
   y: 0,
   initialized: false,
 
   update() {
-    const level = window.game.world ? window.game.world.currentLevel : null;
-    const player = window.game.player;
+    const level = world.currentLevel;
     if (!player || !level) return;
 
     if (!canvas || !canvas.width || !canvas.height || isNaN(canvas.height)) {
@@ -83,6 +82,6 @@ export const camera = {
   }
 };
 
-// Для обратной совместимости
+// Для обратной совместимости (если что-то ещё использует window.game.camera)
 window.game = window.game || {};
 window.game.camera = camera;

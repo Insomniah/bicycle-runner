@@ -1,5 +1,11 @@
-// world.js – управление уровнем и фоном (рефакторинг: чистые функции)
+// world.js – управление уровнем и фоном (внедрение зависимостей)
 import { Wheel } from './entities/wheel.js';
+import { player } from './player.js';
+import { decorations } from './scenery/decorations.js';
+import { background } from './scenery/background.js';
+import { sky } from './scenery/sky.js';
+import { gameState, GameState } from './core/stateMachine.js';
+import { eventBus } from './core/eventBus.js';
 
 // Чистая функция: создаёт массив колёс из данных уровня
 export function generateWheelsFromData(wheelsData) {
@@ -21,10 +27,7 @@ export function resolveBackgroundImage(level, preloadedBackgrounds) {
   }
 }
 
-// Объект мира (мутабельный, но использует чистые функции для генерации)
 export const world = {
-  sky: null,
-  background: null,
   currentLevel: null,
 
   setLevel(level) {
@@ -36,40 +39,44 @@ export const world = {
     const newWheels = generateWheelsFromData(level.wheelsData);
     level.wheels = newWheels;
 
-    if (window.decorations && window.decorations.generate) window.decorations.generate();
+    if (decorations && decorations.generate) decorations.generate();
 
     // Смена фона
-    if (this.background && level.backgroundImage) {
+    if (background && level.backgroundImage) {
       const bgInfo = resolveBackgroundImage(level, window.preloadedBackgrounds);
       if (bgInfo.useCached) {
-        this.background.setImage(bgInfo.source, bgInfo.src);
+        background.setImage(bgInfo.source, bgInfo.src);
       } else {
-        this.background.load(bgInfo.source).catch(console.warn);
+        background.load(bgInfo.source).catch(console.warn);
       }
-    } else if (this.background && !level.backgroundImage) {
+    } else if (background && !level.backgroundImage) {
       const bgInfo = resolveBackgroundImage(level, window.preloadedBackgrounds);
       if (bgInfo.useCached) {
-        this.background.setImage(bgInfo.source, bgInfo.src);
+        background.setImage(bgInfo.source, bgInfo.src);
       } else {
-        this.background.load(bgInfo.source);
+        background.load(bgInfo.source);
       }
     }
 
-    if (window.game.player && window.game.player.initPosition) {
-      window.game.player.initPosition();
+    if (player && player.initPosition) {
+      player.initPosition();
     }
 
-    if (window.game.player) {
-      window.game.player.autoMove = false;
-      window.game.player.moveLeft = false;
-      window.game.player.moveRight = false;
+    if (player) {
+      player.autoMove = false;
+      player.moveLeft = false;
+      player.moveRight = false;
     }
 
+    // Сброс камеры (теперь обращаемся к глобальной камере, но позже внедрим)
     if (window.game.camera) window.game.camera.initialized = false;
 
-    if (this.sky && this.sky.generate) this.sky.generate();
+    if (sky && sky.generate) sky.generate();
 
-    window.game.state.gameOver = false;
+    // Сброс состояния автомата (если нужно)
+    if (gameState.state !== GameState.PLAYING) {
+      // Но не форсируем, только если уровень переключается вручную
+    }
     console.log(`Switched to level: ${level.number}`);
   },
 
@@ -85,14 +92,13 @@ export const world = {
   },
 
   generateWheels(level) {
-    // Оставлен для обратной совместимости, но теперь использует чистую функцию
     if (!level.wheelsData) return;
     level.wheels = generateWheelsFromData(level.wheelsData);
   },
 
   update(dt) {
-    if (this.sky && this.sky.update) this.sky.update();
-    if (this.background && this.background.update) this.background.update();
+    if (sky && sky.update) sky.update();
+    if (background && background.update) background.update();
     if (this.currentLevel && this.currentLevel.wheels) {
       for (const wheel of this.currentLevel.wheels) {
         if (wheel.update) wheel.update(dt);
@@ -101,8 +107,8 @@ export const world = {
   },
 
   draw(ctx, camera) {
-    if (this.sky && this.sky.draw) this.sky.draw(ctx, camera);
-    if (this.background && this.background.draw) this.background.draw(ctx, camera);
+    if (sky && sky.draw) sky.draw(ctx, camera);
+    if (background && background.draw) background.draw(ctx, camera);
   },
 
   drawWheels(ctx, camera) {
@@ -111,7 +117,7 @@ export const world = {
         wheel.draw(ctx, camera);
       }
     }
-  },
+  }
 };
 
 // Для обратной совместимости

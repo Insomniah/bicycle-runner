@@ -1,5 +1,7 @@
-// controls.js – модуль управления (рефакторинг: чистые функции обработки ввода)
+// controls.js – модуль управления (внедрение зависимости player)
 import { canvas, ctx } from './game.js';
+import { player } from './player.js';
+import { gameState, GameState } from './core/stateMachine.js';
 
 export const input = {
   left: false,
@@ -17,7 +19,6 @@ function getGameCoords(clientX, clientY) {
   };
 }
 
-// Чистая функция: обрабатывает список касаний и возвращает команды
 export function processTouches(touches, canvasWidth, canvasHeight, config) {
   let moveLeft = false;
   let moveRight = false;
@@ -56,10 +57,10 @@ export function processTouches(touches, canvasWidth, canvasHeight, config) {
 function handleTouch(e) {
   e.preventDefault();
   const commands = processTouches(e.touches, canvas.width, canvas.height, CONFIG);
-  window.game.player.moveLeft = commands.moveLeft;
-  window.game.player.moveRight = commands.moveRight;
-  if (commands.jumpPressed && window.game.player.onGround) {
-    window.game.player.jump();
+  player.moveLeft = commands.moveLeft;
+  player.moveRight = commands.moveRight;
+  if (commands.jumpPressed && player.onGround && gameState.state === GameState.PLAYING) {
+    player.jump();
   }
 }
 
@@ -68,8 +69,8 @@ if (input.isMobile) {
   canvas.addEventListener("touchmove", handleTouch, { passive: false });
   canvas.addEventListener("touchend", (e) => {
     if (e.touches.length === 0) {
-      window.game.player.moveLeft = false;
-      window.game.player.moveRight = false;
+      player.moveLeft = false;
+      player.moveRight = false;
     } else {
       handleTouch(e);
     }
@@ -82,17 +83,17 @@ window.addEventListener("keydown", (e) => {
     window.game.state.debugMode = !window.game.state.debugMode;
     console.log("Debug mode:", window.game.state.debugMode ? "ON" : "OFF");
   }
-  if (e.key === "ArrowLeft" || e.key === "a") window.game.player.moveLeft = true;
-  if (e.key === "ArrowRight" || e.key === "d") window.game.player.moveRight = true;
+  if (e.key === "ArrowLeft" || e.key === "a") player.moveLeft = true;
+  if (e.key === "ArrowRight" || e.key === "d") player.moveRight = true;
   if (e.key === " ") {
     e.preventDefault();
-    window.game.player.jump();
+    player.jump();
   }
 });
 
 window.addEventListener("keyup", (e) => {
-  if (e.key === "ArrowLeft" || e.key === "a") window.game.player.moveLeft = false;
-  if (e.key === "ArrowRight" || e.key === "d") window.game.player.moveRight = false;
+  if (e.key === "ArrowLeft" || e.key === "a") player.moveLeft = false;
+  if (e.key === "ArrowRight" || e.key === "d") player.moveRight = false;
 });
 
 export function drawUI() {

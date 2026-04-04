@@ -42,20 +42,20 @@ async function loadAllImages() {
   window.preloadedBackgrounds[CONFIG.BACKGROUND_FACTORIES] = factoriesImg;
 
   // Загрузка камней
-  if (rocks.rockTypes && rocks.rockTypes.length) {
-    const rockPromises = rocks.rockTypes.map(type => loadImage(type.src));
+  if (decorations.rockTypes && decorations.rockTypes.length) {
+    const rockPromises = decorations.rockTypes.map(type => loadImage(type.src));
     const rockImages = await Promise.all(rockPromises);
-    rocks.rockImages = rockImages;
-    rocks.setRockImages(rockImages);
+    decorations.rockImages = rockImages;
+    decorations.setRockImages(rockImages);
   }
 
   // Загрузка шин
-  if (rocks.tireTypes && rocks.tireTypes.length) {
-    const tirePromises = rocks.tireTypes.map(type => loadImage(type.src));
+  if (decorations.tireTypes && decorations.tireTypes.length) {
+    const tirePromises = decorations.tireTypes.map(type => loadImage(type.src));
     const tireImages = await Promise.all(tirePromises);
     console.log('TIRES loaded, count:', tireImages.length);
-    rocks.tireImages = tireImages;
-    rocks.setTireImages(tireImages);
+    decorations.tireImages = tireImages;
+    decorations.setTireImages(tireImages);
   }
 
   // Загрузка колёс
@@ -63,11 +63,11 @@ async function loadAllImages() {
   window.wheelSprite = wheelSpriteImg;
 
   console.log("All images loaded");
-  rocks.loaded = true;
+  decorations.loaded = true;
 
   // Если уровень уже установлен, генерируем камни/шины
   if (window.game.world && window.game.world.currentLevel) {
-    rocks.generate();
+    decorations.generate();
   }
 }
 
@@ -81,7 +81,7 @@ window.game.restart = function() {
   try {
     if (!window.game.world.currentLevel) return;
     window.game.world.currentLevel.generate();
-    rocks.generate();
+    decorations.generate();
     rebuildWorld();
     
     // ПЕРЕСОЗДАЁМ КОЛЁСА
@@ -169,7 +169,7 @@ loadAllImages().then(() => {
   addToLayer("background", skyBackground);
   addToLayer("background", sky);
   addToLayer("background", background);
-  addToLayer("midground", rocks);
+  addToLayer("midground", decorations);
 
   resizeCanvas();
   rebuildWorld();

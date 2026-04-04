@@ -1,6 +1,6 @@
 // rocks.js – камни на первом уровне, шины на втором
 
-const rocks = {
+const decorations = {
   list: [],
   rockTypes: [
     { src: "assets/rocks/middle_lane_rock1_1.png" },
@@ -70,4 +70,4 @@ const rocks = {
   update() {}
 };
 
-window.rocks = rocks;
+window.decorations = decorations;

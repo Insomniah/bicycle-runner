@@ -11,7 +11,7 @@ window.game.world = {
     this.currentLevel = level;
     if (level.generate) level.generate();
     this.generateWheels(level);
-    if (window.rocks && window.rocks.generate) window.rocks.generate();
+    if (window.decorations && window.decorations.generate) window.decorations.generate();
 
     // Смена фона (горы/заводы) в зависимости от уровня
     if (this.mountains && level.backgroundImage) {

@@ -53,7 +53,6 @@ async function loadAllImages() {
   if (decorations.tireTypes && decorations.tireTypes.length) {
     const tirePromises = decorations.tireTypes.map(type => loadImage(type.src));
     const tireImages = await Promise.all(tirePromises);
-    console.log('TIRES loaded, count:', tireImages.length);
     decorations.tireImages = tireImages;
     decorations.setTireImages(tireImages);
   }

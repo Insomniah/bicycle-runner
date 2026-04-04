@@ -1,105 +1,7 @@
-// player.js – модуль игрока с поддержкой конечного автомата
+// player.js – упрощённая версия с работающим автодвижением
 import { handleCollisions } from './collision.js';
 import { eventBus } from './core/eventBus.js';
 import { gameState, GameState } from './core/stateMachine.js';
-
-// Чистая функция физики
-export function updatePlayerPhysics(state, input, level, dt, isGameActive) {
-  let { x, y, vy, onGround, autoMove, moveLeft, moveRight, prevY, coyoteTimer, wasOnGround, frameX, frameTimer } = state;
-  let wheelsCollectedDelta = 0;
-  let levelCompleteTrigger = false;
-  let gameOverTrigger = false;
-
-  const newPrevY = y;
-
-  // Сбор колёс
-  if (level.wheels) {
-    for (let i = 0; i < level.wheels.length; i++) {
-      const wheel = level.wheels[i];
-      if (wheel.collect({ x, y, width: state.width, height: state.height })) {
-        wheelsCollectedDelta++;
-        level.wheels.splice(i, 1);
-        i--;
-      }
-    }
-  }
-
-  // Проверка завершения уровня
-  if (isGameActive && x + state.width >= level.width - CONFIG.FINISH_THRESHOLD) {
-    levelCompleteTrigger = true;
-    autoMove = true;
-  }
-
-  const frame = Math.max(CONFIG.MIN_FRAME, Math.min(dt * 60, CONFIG.MAX_FRAME));
-
-  // Горизонтальное движение
-  if (isGameActive && !levelCompleteTrigger) {
-    if (moveLeft) x -= state.speed * frame;
-    if (moveRight) x += state.speed * frame;
-  } else if (levelCompleteTrigger && autoMove) {
-    const maxX = level.width + CONFIG.AUTO_MOVE_EXTRA;
-    if (x < maxX) x += state.speed * frame;
-    else autoMove = false;
-    moveLeft = false;
-    moveRight = false;
-  }
-
-  // Гравитация
-  vy += state.gravity * frame;
-  y += vy * frame;
-
-  const tempPlayer = { x, y, vy, width: state.width, height: state.height, prevY: newPrevY };
-  const { onGround: newOnGround } = handleCollisions(tempPlayer, level);
-  x = tempPlayer.x;
-  y = tempPlayer.y;
-  vy = tempPlayer.vy;
-
-  // Coyote Time
-  let newCoyoteTimer = coyoteTimer;
-  let newWasOnGround = wasOnGround;
-  if (newOnGround) {
-    newCoyoteTimer = CONFIG.PLAYER_COYOTE_TIME;
-    newWasOnGround = true;
-  } else {
-    if (newWasOnGround && newCoyoteTimer > 0) newCoyoteTimer -= dt;
-    else newWasOnGround = false;
-  }
-
-  // Ограничения по горизонтали
-  if (x < 0) x = 0;
-  if (!autoMove && x + state.width > level.width && !levelCompleteTrigger) {
-    x = level.width - state.width;
-  }
-
-  // Падение
-  const bottomLimit = level.height + CONFIG.FALL_LIMIT_OFFSET;
-  if (y > bottomLimit) {
-    y = bottomLimit;
-    vy = 0;
-    if (isGameActive) gameOverTrigger = true;
-    moveLeft = false;
-    moveRight = false;
-  }
-
-  // Анимация
-  let newFrameX = frameX;
-  let newFrameTimer = frameTimer + dt;
-  if (newFrameTimer > state.frameInterval) {
-    newFrameTimer = 0;
-    newFrameX = (frameX + 1) % state.frameCount;
-  }
-
-  return {
-    newState: {
-      x, y, vy, onGround: newOnGround, autoMove, moveLeft, moveRight,
-      prevY: newPrevY, coyoteTimer: newCoyoteTimer, wasOnGround: newWasOnGround,
-      frameX: newFrameX, frameTimer: newFrameTimer
-    },
-    wheelsCollectedDelta,
-    levelCompleteTrigger,
-    gameOverTrigger
-  };
-}
 
 export const player = {
   x: CONFIG.PLAYER_START_X,
@@ -176,46 +78,81 @@ export const player = {
     const level = window.game.world.currentLevel;
     if (!level) return;
 
-    const input = {
-      moveLeft: this.moveLeft,
-      moveRight: this.moveRight,
-      autoMove: this.autoMove
-    };
-    const state = {
-      x: this.x, y: this.y, vy: this.vy, onGround: this.onGround,
-      autoMove: this.autoMove, moveLeft: this.moveLeft, moveRight: this.moveRight,
-      prevY: this.prevY, coyoteTimer: this.coyoteTimer, wasOnGround: this.wasOnGround,
-      frameX: this.frameX, frameTimer: this.frameTimer,
-      width: this.width, height: this.height, speed: this.speed, gravity: this.gravity,
-      frameCount: this.frameCount, frameInterval: this.frameInterval
-    };
-    const isGameActive = (gameState.state === GameState.PLAYING);
-
-    const { newState, wheelsCollectedDelta, levelCompleteTrigger, gameOverTrigger } =
-      updatePlayerPhysics(state, input, level, dt, isGameActive);
-
-    this.x = newState.x;
-    this.y = newState.y;
-    this.vy = newState.vy;
-    this.onGround = newState.onGround;
-    this.autoMove = newState.autoMove;
-    this.moveLeft = newState.moveLeft;
-    this.moveRight = newState.moveRight;
-    this.prevY = newState.prevY;
-    this.coyoteTimer = newState.coyoteTimer;
-    this.wasOnGround = newState.wasOnGround;
-    this.frameX = newState.frameX;
-    this.frameTimer = newState.frameTimer;
-
-    if (wheelsCollectedDelta > 0) {
-      window.game.state.wheelsCollected += wheelsCollectedDelta;
-      eventBus.emit('wheel.collected', { count: window.game.state.wheelsCollected });
+    // Сбор колёс
+    if (level.wheels) {
+      for (let i = 0; i < level.wheels.length; i++) {
+        const wheel = level.wheels[i];
+        if (wheel.collect(this)) {
+          window.game.state.wheelsCollected++;
+          eventBus.emit('wheel.collected', { count: window.game.state.wheelsCollected });
+          level.wheels.splice(i, 1);
+          i--;
+        }
+      }
     }
-    if (levelCompleteTrigger) {
+
+    this.prevY = this.y;
+    const frame = Math.max(CONFIG.MIN_FRAME, Math.min(dt * 60, CONFIG.MAX_FRAME));
+
+    // Завершение уровня
+    const atFinish = this.x + this.width >= level.width - CONFIG.FINISH_THRESHOLD;
+    if (atFinish && gameState.state === GameState.PLAYING) {
       gameState.transition('complete');
+      this.autoMove = true;
     }
-    if (gameOverTrigger) {
-      gameState.transition('fail');
+
+    // Движение
+    if (gameState.state === GameState.PLAYING) {
+      if (this.moveLeft) this.x -= this.speed * frame;
+      if (this.moveRight) this.x += this.speed * frame;
+    } else if (gameState.state === GameState.LEVEL_COMPLETE && this.autoMove) {
+      const maxX = level.width + CONFIG.AUTO_MOVE_EXTRA;
+      if (this.x < maxX) this.x += this.speed * frame;
+      else this.autoMove = false;
+      this.moveLeft = false;
+      this.moveRight = false;
+    }
+
+    // Гравитация
+    this.vy += this.gravity * frame;
+    this.y += this.vy * frame;
+
+    // Коллизии
+    const { onGround } = handleCollisions(this, level);
+    this.onGround = onGround;
+
+    // Coyote Time
+    if (this.onGround) {
+      this.coyoteTimer = CONFIG.PLAYER_COYOTE_TIME;
+      this.wasOnGround = true;
+    } else {
+      if (this.wasOnGround && this.coyoteTimer > 0) this.coyoteTimer -= dt;
+      else this.wasOnGround = false;
+    }
+
+    // Границы
+    if (this.x < 0) this.x = 0;
+    if (!this.autoMove && this.x + this.width > level.width && gameState.state !== GameState.LEVEL_COMPLETE) {
+      this.x = level.width - this.width;
+    }
+
+    // Падение
+    const bottomLimit = level.height + CONFIG.FALL_LIMIT_OFFSET;
+    if (this.y > bottomLimit) {
+      this.y = bottomLimit;
+      this.vy = 0;
+      if (gameState.state === GameState.PLAYING) {
+        gameState.transition('fail');
+      }
+      this.moveLeft = false;
+      this.moveRight = false;
+    }
+
+    // Анимация
+    this.frameTimer += dt;
+    if (this.frameTimer > this.frameInterval) {
+      this.frameTimer = 0;
+      this.frameX = (this.frameX + 1) % this.frameCount;
     }
   }
 };

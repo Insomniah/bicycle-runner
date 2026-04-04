@@ -1,6 +1,5 @@
-// background.js – фон гор/заводов (тайлинг с параллаксом, с поддержкой масштаба)
-
-const background = {
+// scenery/background.js – универсальный фон (горы/заводы) с масштабированием (модуль)
+export const background = {
   img: null,
   loaded: false,
   currentSrc: null,
@@ -40,7 +39,6 @@ const background = {
     const level = window.game.world.currentLevel;
     if (!level) return;
 
-    // Получаем масштаб для текущего фона
     let scale = 1;
     if (window.CONFIG && window.CONFIG.BACKGROUND_SCALE && this.currentSrc) {
       scale = window.CONFIG.BACKGROUND_SCALE[this.currentSrc] || 1;
@@ -56,5 +54,8 @@ const background = {
     for (let x = startX; x < camera.x + canvas.width + imgW; x += imgW) {
       ctx.drawImage(this.img, x - camera.x, y, imgW, imgH);
     }
-  },
+  }
 };
+
+// Для обратной совместимости (если где-то используется window.background)
+window.background = background;

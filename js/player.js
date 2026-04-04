@@ -1,9 +1,7 @@
-// player.js – данные игрока, движение, анимация, отрисовка
+// player.js – модуль игрока
+import { handleCollisions } from './collision.js';
 
-window.game = window.game || {};
-
-// глобальный объект игрока, с данными и методами
-window.game.player = {
+export const player = {
     x: CONFIG.PLAYER_START_X,
     y: 0,
     width: CONFIG.PLAYER_WIDTH,
@@ -28,62 +26,41 @@ window.game.player = {
     frameInterval: CONFIG.PLAYER_FRAME_INTERVAL,
     hitboxOffsetX: CONFIG.PLAYER_HITBOX_OFFSET_X,
     coyoteTimer: 0,
-    wasOnGround: false,   // флаг, был ли игрок на земле в предыдущем кадре
+    wasOnGround: false,
 
-    // Прыжок игрока с учётом Coyote Time
     jump() {
         const canJump = (this.onGround || this.coyoteTimer > 0) && window.game.state.gameOver === false;
         if (canJump) {
             this.vy = this.jumpPower;
             this.onGround = false;
-            this.coyoteTimer = 0;      // сбрасываем таймер после прыжка
+            this.coyoteTimer = 0;
             this.wasOnGround = false;
         }
     },
 
-    // Рисуем игрока с учётом направления и анимации
     draw(ctx, camera) {
         if (!this.sprite || !this.sprite.complete) return;
         ctx.save();
-
-        // 1. Используем отдельную константу для ширины отрисовки
-        const drawW = CONFIG.PLAYER_DRAW_WIDTH; // Например, 48
-        const drawH = CONFIG.PLAYER_HEIGHT;     // 64
-        
-        // 2. Центрируем спрайт относительно узкого хитбокса
-        // Сдвигаем влево на половину разницы ширин
+        const drawW = CONFIG.PLAYER_DRAW_WIDTH;
+        const drawH = CONFIG.PLAYER_HEIGHT;
         const visualOffsetX = (drawW - CONFIG.PLAYER_WIDTH) / 2;
-
         const drawX = this.x - camera.x - visualOffsetX;
         const drawY = this.y - camera.y;
-
         const srcX = this.frameX * CONFIG.PLAYER_FRAME_WIDTH + CONFIG.PLAYER_SRC_VISIBLE_X;
         const srcY = CONFIG.PLAYER_SRC_VISIBLE_Y;
         const srcW = CONFIG.PLAYER_SRC_VISIBLE_W;
         const srcH = CONFIG.PLAYER_SRC_VISIBLE_H;
 
         if (this.moveLeft) {
-            // При повороте тоже учитываем drawW
             ctx.translate(drawX + drawW, drawY);
             ctx.scale(-1, 1);
-            ctx.drawImage(
-                this.sprite,
-                srcX, srcY, srcW, srcH,
-                0, 0,
-                drawW, drawH
-            );
+            ctx.drawImage(this.sprite, srcX, srcY, srcW, srcH, 0, 0, drawW, drawH);
         } else {
-            ctx.drawImage(
-                this.sprite,
-                srcX, srcY, srcW, srcH,
-                drawX, drawY,
-                drawW, drawH
-            );
+            ctx.drawImage(this.sprite, srcX, srcY, srcW, srcH, drawX, drawY, drawW, drawH);
         }
         ctx.restore();
     },
 
-    // Инициализация позиции игрока на уровне
     initPosition() {
         const level = window.game.world.currentLevel;
         if (!level) return;
@@ -97,7 +74,6 @@ window.game.player = {
         console.log("Player initialized at", { x: this.x, y: this.y });
     },
 
-    // Обновление состояния игрока: движение, гравитация, столкновения, анимация
     update(dt) {
         const level = window.game.world ? window.game.world.currentLevel : null;
         if (!level) {
@@ -127,7 +103,6 @@ window.game.player = {
             console.log("Level finished! gameOver set to 'complete'");
         }
 
-        // Горизонтальное движение
         if (window.game.state.gameOver === false) {
             if (player.moveLeft) player.x -= player.speed * frame;
             if (player.moveRight) player.x += player.speed * frame;
@@ -140,15 +115,12 @@ window.game.player = {
             player.moveRight = false;
         }
 
-        // Гравитация
         player.vy += player.gravity * frame;
         player.y += player.vy * frame;
 
-        // Коллизии
         const { onGround } = handleCollisions(player, level);
         player.onGround = onGround;
 
-        // Coyote Time: если игрок был на земле, сбрасываем таймер
         if (player.onGround) {
             player.coyoteTimer = CONFIG.PLAYER_COYOTE_TIME;
             player.wasOnGround = true;
@@ -160,13 +132,11 @@ window.game.player = {
             }
         }
 
-        // Ограничения по горизонтали
         if (player.x < 0) player.x = 0;
         if (!player.autoMove && player.x + player.width > level.width && window.game.state.gameOver !== "complete") {
             player.x = level.width - player.width;
         }
 
-        // Падение за пределы уровня
         const bottomLimit = level.height + CONFIG.FALL_LIMIT_OFFSET;
         if (player.y > bottomLimit) {
             player.y = bottomLimit;
@@ -179,7 +149,6 @@ window.game.player = {
             player.moveRight = false;
         }
 
-        // Анимация
         player.frameTimer += dt;
         if (player.frameTimer > player.frameInterval) {
             player.frameTimer = 0;
@@ -191,5 +160,6 @@ window.game.player = {
     }
 };
 
-window.game.player.sprite = new Image();
-window.game.player.sprite.src = "assets/player/player.png";
+// Загрузка спрайта
+player.sprite = new Image();
+player.sprite.src = "assets/player/player.png";

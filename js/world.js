@@ -1,9 +1,10 @@
-// world.js – управление уровнем и фоном (с поддержкой смены фона)
+// world.js – управление уровнем и фоном
 
-window.game = window.game || {};
-window.game.world = {
+import { Wheel } from './entities/wheel.js';
+
+export const world = {
   sky: null,
-  mountains: null,
+  background: null,
   currentLevel: null,
 
   setLevel(level) {
@@ -13,23 +14,19 @@ window.game.world = {
     this.generateWheels(level);
     if (window.decorations && window.decorations.generate) window.decorations.generate();
 
-    // Смена фона (горы/заводы) в зависимости от уровня
-    if (this.mountains && level.backgroundImage) {
-      // Если уже загружено изображение из предзагрузки – используем его
+    if (this.background && level.backgroundImage) {
       const cachedImg = window.preloadedBackgrounds?.[level.backgroundImage];
       if (cachedImg) {
-        this.mountains.setImage(cachedImg, level.backgroundImage);
+        this.background.setImage(cachedImg, level.backgroundImage);
       } else {
-        // иначе загружаем динамически (но лучше предзагружать)
-        this.mountains.load(level.backgroundImage).catch(console.warn);
+        this.background.load(level.backgroundImage).catch(console.warn);
       }
-    } else if (this.mountains && !level.backgroundImage) {
-      // fallback на горы по умолчанию
+    } else if (this.background && !level.backgroundImage) {
       const defaultBg = CONFIG.BACKGROUND_MOUNTAINS;
       if (window.preloadedBackgrounds?.[defaultBg]) {
-        this.mountains.setImage(window.preloadedBackgrounds[defaultBg], defaultBg);
+        this.background.setImage(window.preloadedBackgrounds[defaultBg], defaultBg);
       } else {
-        this.mountains.load(defaultBg);
+        this.background.load(defaultBg);
       }
     }
 
@@ -66,13 +63,14 @@ window.game.world = {
     if (!level.wheelsData) return;
     level.wheels = [];
     for (const w of level.wheelsData) {
+      // Используем глобальный класс Wheel (доступен из wheel.js)
       level.wheels.push(new Wheel(w.x, w.y));
     }
   },
 
   update(dt) {
     if (this.sky && this.sky.update) this.sky.update();
-    if (this.mountains && this.mountains.update) this.mountains.update();
+    if (this.background && this.background.update) this.background.update();
     if (this.currentLevel && this.currentLevel.wheels) {
       for (const wheel of this.currentLevel.wheels) {
         if (wheel.update) wheel.update(dt);
@@ -82,7 +80,7 @@ window.game.world = {
 
   draw(ctx, camera) {
     if (this.sky && this.sky.draw) this.sky.draw(ctx, camera);
-    if (this.mountains && this.mountains.draw) this.mountains.draw(ctx, camera);
+    if (this.background && this.background.draw) this.background.draw(ctx, camera);
   },
 
   drawWheels(ctx, camera) {
@@ -93,3 +91,6 @@ window.game.world = {
     }
   },
 };
+
+window.game = window.game || {};
+window.game.world = world;

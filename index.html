@@ -8,38 +8,16 @@
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
-
     <div id="game-over" class="hidden">
         <div id="game-over-content">
             <div id="game-over-text">Game Over</div>
             <button id="restart-button">Restart</button>
         </div>
     </div>
-
     <div id="rotateNotice">Поверните экран горизонтально</div>
+
+    <!-- Только config.js остаётся глобальным (в нём нет export) -->
     <script src="js/config.js"></script>
-    <script src="js/core/canvas.js"></script>
-    <script src="js/core/layers.js"></script>
-
-    <script src="js/entities/platform.js"></script>
-    <script src="js/entities/wheel.js"></script>
-
-    <script src="js/world.js"></script>
-
-    <script src="levels/level1.js"></script>
-    <script src="levels/level2.js"></script>
-
-    <script src="js/scenery/skybackground.js"></script>
-    <script src="js/scenery/sky.js"></script>
-    <script src="js/scenery/background.js"></script>
-    <script src="js/scenery/decorations.js"></script>
-
-    <script src="js/camera.js"></script>
-    <script src="js/player.js"></script>
-    <script src="js/collision.js"></script>
-    <script src="js/controls.js"></script>
-
-    <script src="js/game.js"></script>
-    <script src="js/main.js"></script>
+    <script type="module" src="js/main-module.js"></script>
 </body>
 </html>

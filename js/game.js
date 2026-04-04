@@ -1,37 +1,22 @@
-window.canvas = document.getElementById("gameCanvas");
-window.ctx = canvas.getContext("2d");
+// game.js – глобальные объекты canvas и UI (модуль)
+export const canvas = document.getElementById("gameCanvas");
+export const ctx = canvas.getContext("2d");
 window.DEBUG = true;
 
-window.gameOver = false;
-
-// ===============================
-// Проверка ориентации для таблички
-// ===============================
 function updateRotateNotice() {
-    const notice = document.getElementById("rotateNotice");
-    if (!notice) return;
-
-    // реальные размеры экрана
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-
-    // вертикально — показываем
-    if (vh > vw) {
-        notice.style.display = "flex";
-    } else {
-        // горизонтально — скрываем
-        notice.style.display = "none";
-    }
+  const notice = document.getElementById("rotateNotice");
+  if (!notice) return;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  if (vh > vw) {
+    notice.style.display = "flex";
+  } else {
+    notice.style.display = "none";
+  }
 }
-
-
-// проверка сразу после запуска
 updateRotateNotice();
 
-// ===============================
-// Game Over UI
-// ===============================
-window.gameOverUI = {
+export const gameOverUI = {
   root: null,
   text: null,
   button: null,
@@ -40,7 +25,6 @@ window.gameOverUI = {
     this.root = document.getElementById("game-over");
     this.text = document.getElementById("game-over-text");
     this.button = document.getElementById("restart-button");
-
     this.button.addEventListener("click", () => {
       window.game.restart();
       this.hide();
@@ -60,11 +44,9 @@ window.gameOverUI = {
   },
 };
 
-// Привязываем к window.game для доступа из других модулей
 window.game = window.game || {};
-window.game.gameOverUI = window.gameOverUI;
+window.game.gameOverUI = gameOverUI;
 
-// реальные размеры окна браузера на мобильных устройствах для правильного масштабирования
 function setRealVH() {
   const vh = window.innerHeight * 0.01;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
@@ -72,10 +54,11 @@ function setRealVH() {
 setRealVH();
 window.addEventListener('resize', setRealVH);
 window.addEventListener('orientationchange', setRealVH);
-
-// проверка при изменении размера или повороте
 window.addEventListener("resize", updateRotateNotice);
 window.addEventListener("orientationchange", updateRotateNotice);
 
 gameOverUI.init();
-window.game.gameOverUI = window.gameOverUI;
+
+// Для обратной совместимости
+window.canvas = canvas;
+window.ctx = ctx;

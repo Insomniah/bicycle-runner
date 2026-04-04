@@ -1,6 +1,5 @@
-// rocks.js – камни на первом уровне, шины на втором
-
-const decorations = {
+// scenery/decorations.js – камни и шины (модуль)
+export const decorations = {
   list: [],
   rockTypes: [
     { src: "assets/rocks/middle_lane_rock1_1.png" },
@@ -35,10 +34,8 @@ const decorations = {
     const images = useTires ? this.tireImages : this.rockImages;
     if (!images.length) return;
 
-    // Для шин используем масштаб 0.5 (уменьшаем в 2 раза)
     const scale = useTires ? 0.2 : 1;
     const margin = CONFIG.ROCKS_MARGIN;
-    // Для второго уровня увеличиваем количество объектов на платформу
     const perPlatform = useTires ? 4 : CONFIG.ROCKS_PER_PLATFORM;
 
     for (const platform of level.groundPlatforms) {
@@ -51,7 +48,6 @@ const decorations = {
         if (maxX <= minX) continue;
         const x = minX + Math.random() * (maxX - minX);
         const y = platform.y - h;
-        // Сохраняем оригинальное изображение, масштаб и размеры
         this.list.push({ x, y, img, scale, w, h });
       }
     }
@@ -62,7 +58,6 @@ const decorations = {
       const x = r.x - camera.x;
       const y = r.y - camera.y;
       if (x + r.w < 0 || x > canvas.width) continue;
-      // Рисуем с масштабом
       ctx.drawImage(r.img, x, y, r.w, r.h);
     }
   },
@@ -70,4 +65,5 @@ const decorations = {
   update() {}
 };
 
+// Для обратной совместимости
 window.decorations = decorations;

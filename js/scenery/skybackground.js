@@ -1,10 +1,10 @@
 const skyBackground = {
 
-    draw(ctx) {
-
-        ctx.fillStyle = "#5c94fc";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    draw(ctx, camera) {
+    const level = window.game.world.currentLevel;
+    const color = level && level.skyColor ? level.skyColor : CONFIG.DEFAULT_SKY_COLOR;
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
 };

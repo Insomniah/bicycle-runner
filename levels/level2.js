@@ -5,7 +5,8 @@ const level2 = {
   width: 2000,
   height: 2000,
   groundY: 1500,
-
+    skyColor: "#788aad",
+// можно даже "#6983b4"
   // Фон для этого уровня (заводы)
   backgroundImage: CONFIG.BACKGROUND_FACTORIES,
 

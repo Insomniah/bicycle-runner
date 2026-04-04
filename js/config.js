@@ -43,6 +43,8 @@ const CONFIG = {
   SKY_CLOUD_WRAP_MARGIN: 300,
   SKY_WIND_SPEED: 0.2,
   SKY_PARALLAX: 0.2,
+  // Цвет неба по умолчанию (если у уровня не указан skyColor)
+    DEFAULT_SKY_COLOR: "#000000",
   MOUNTAINS_BURY_FACTOR: 0.4,
   ROCKS_PER_PLATFORM: 4,
   ROCKS_MARGIN: 10,

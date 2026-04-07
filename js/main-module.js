@@ -31,8 +31,8 @@ if (window._pendingPlayerSprite) {
 
 async function loadLevels() {
   const [level1Data, level2Data] = await Promise.all([
-    fetch('../levels/level1.json').then(r => r.json()),
-    fetch('../levels/level2.json').then(r => r.json())
+    fetch('./levels/level1.json').then(r => r.json()),
+    fetch('./levels/level2.json').then(r => r.json())
   ]);
 
   function enhanceLevel(data) {

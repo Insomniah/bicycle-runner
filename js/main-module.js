@@ -1,4 +1,4 @@
-// main-module.js – точка входа с конечным автоматом, gameStore и рабочим рестартом
+// main-module.js – точка входа с конечным автоматом, gameStore и загрузкой уровней из JSON
 import { resizeCanvas, rebuildWorld } from './core/canvas.js';
 import { addToLayer, drawLayers } from './core/layers.js';
 import { assetManager } from './core/assetManager.js';
@@ -14,21 +14,49 @@ import { skyBackground } from './scenery/skybackground.js';
 import { sky } from './scenery/sky.js';
 import { background } from './scenery/background.js';
 import { decorations } from './scenery/decorations.js';
-import { level1 } from '../levels/level1.js';
-import { level2 } from '../levels/level2.js';
+import { Platform } from './entities/platform.js';
 
-// Глобальный объект для обратной совместимости (restart и camera для debug)
 window.game = window.game || {};
-window.game.player = player;          // важно: до вызова loadAllAssets
+window.game.player = player;
 window.game.world = world;
 window.game.camera = camera;
 window.game.gameOverUI = gameOverUI;
 window.game.eventBus = eventBus;
 
-// Применяем отложенный спрайт, если он был сохранён в assetManager
 if (window._pendingPlayerSprite) {
   window.game.player.sprite = window._pendingPlayerSprite;
   delete window._pendingPlayerSprite;
+}
+
+async function loadLevels() {
+  const [level1Data, level2Data] = await Promise.all([
+    fetch('../levels/level1.json').then(r => r.json()),
+    fetch('../levels/level2.json').then(r => r.json())
+  ]);
+
+  function enhanceLevel(data) {
+    return {
+      ...data,
+      platforms: [],
+      groundPlatforms: [],
+      getGroundBase() {
+        return this.groundY;
+      },
+      generate() {
+        this.platforms = [];
+        const base = this.getGroundBase();
+        for (const p of this.platformData) {
+          this.platforms.push(new Platform(p.x, base - p.offset, p.w, p.h));
+        }
+        this.groundPlatforms = [];
+        for (const gp of this.groundPlatformsData) {
+          this.groundPlatforms.push(new Platform(gp.x, base, gp.width, 200));
+        }
+      }
+    };
+  }
+
+  return [enhanceLevel(level1Data), enhanceLevel(level2Data)];
 }
 
 window.game.restart = function() {
@@ -92,13 +120,12 @@ function drawWheelCounter() {
   ctx.fillText(`🔄 ${gameStore.wheelsCollected}`, canvas.width - 20, 40);
 }
 
-// Подписки на события автомата
 eventBus.on('state.level_complete', () => {
   gameOverUI.show(true);
   setTimeout(() => {
     if (gameState.state === GameState.LEVEL_COMPLETE) {
       gameState.transition('switch');
-      world.setLevel(level2);
+      world.setLevel(window._cachedLevel2);
       rebuildWorld();
       gameStore.resetWheels();
       gameOverUI.hide();
@@ -111,11 +138,8 @@ eventBus.on('state.game_over', () => {
   gameOverUI.show(false);
 });
 
-eventBus.on('state.playing', () => {
-  // Можно добавить логику при возобновлении игры
-});
+eventBus.on('state.playing', () => {});
 
-// Обработчик кнопки Restart (через EventBus)
 eventBus.on('game.restart', () => {
   window.game.restart();
 });
@@ -130,6 +154,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (mountainsImg && background && !background.loaded) {
     background.setImage(mountainsImg, CONFIG.BACKGROUND_MOUNTAINS);
   }
+
+  const [level1, level2] = await loadLevels();
+  window._cachedLevel2 = level2; // кешируем второй уровень
   world.setLevel(level1);
   gameStore.resetWheels();
   addToLayer("background", skyBackground);

@@ -3,8 +3,8 @@ import { canvas, ctx } from './game.js';
 import { player } from './player.js';
 import { gameState, GameState } from './core/stateMachine.js';
 import { gameStore } from './core/gameStore.js';
-import { VirtualJoystick } from './ui/VirtualJoystick.js';
-import { JumpButton } from './ui/JumpButton.js';
+import { VirtualJoystick } from './ui/virtualJoystick.js';
+import { JumpButton } from './ui/jumpButton.js';
 
 export const input = {
   isMobile: 'ontouchstart' in window

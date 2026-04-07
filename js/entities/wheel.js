@@ -1,4 +1,6 @@
-// entities/wheel.js – модуль колеса
+// wheel.js – класс колеса с SpriteAnimator
+import { SpriteAnimator } from '../core/spriteAnimator.js';
+
 export class Wheel {
   constructor(x, y) {
     this.x = x;
@@ -6,26 +8,20 @@ export class Wheel {
     this.width = CONFIG.WHEEL_DRAW_SIZE;
     this.height = CONFIG.WHEEL_DRAW_SIZE;
     this.collected = false;
-    this.currentFrame = 0;
-    this.accumulator = 0;
+    this.animator = new SpriteAnimator(CONFIG.WHEEL_FRAME_COUNT, CONFIG.WHEEL_FRAME_INTERVAL);
   }
 
   update(dt) {
     if (this.collected) return;
-    if (dt > 0.033) dt = 0.033;
-    this.accumulator += dt;
-    const frameDuration = CONFIG.WHEEL_FRAME_INTERVAL;
-    if (this.accumulator >= frameDuration) {
-      this.accumulator -= frameDuration;
-      this.currentFrame = (this.currentFrame + 1) % CONFIG.WHEEL_FRAME_COUNT;
-    }
+    this.animator.update(dt);
   }
 
   draw(ctx, camera) {
     if (this.collected) return;
     const screenX = this.x - camera.x;
     const screenY = this.y - camera.y;
-    const srcX = this.currentFrame * CONFIG.WHEEL_FRAME_W;
+    const frame = this.animator.getFrame();
+    const srcX = frame * CONFIG.WHEEL_FRAME_W;
     const srcY = CONFIG.WHEEL_SPRITE_SRC_Y;
     const srcW = CONFIG.WHEEL_FRAME_W;
     const srcH = CONFIG.WHEEL_SPRITE_SRC_H;

@@ -1,8 +1,9 @@
-// player.js – упрощённая версия с работающим автодвижением и gameStore
+// player.js – с использованием SpriteAnimator
 import { handleCollisions } from './collision.js';
 import { eventBus } from './core/eventBus.js';
 import { gameState, GameState } from './core/stateMachine.js';
 import { gameStore } from './core/gameStore.js';
+import { SpriteAnimator } from './core/spriteAnimator.js';
 
 export const player = {
   x: CONFIG.PLAYER_START_X,
@@ -19,16 +20,12 @@ export const player = {
   autoMove: false,
   prevY: 0,
   sprite: null,
-  frameX: 0,
-  frameY: 0,
-  frameWidth: CONFIG.PLAYER_FRAME_WIDTH,
-  frameHeight: CONFIG.PLAYER_FRAME_HEIGHT,
-  frameCount: CONFIG.PLAYER_FRAME_COUNT,
-  frameTimer: 0,
-  frameInterval: CONFIG.PLAYER_FRAME_INTERVAL,
   hitboxOffsetX: CONFIG.PLAYER_HITBOX_OFFSET_X,
   coyoteTimer: 0,
   wasOnGround: false,
+
+  // Аниматор
+  animator: new SpriteAnimator(CONFIG.PLAYER_FRAME_COUNT, CONFIG.PLAYER_FRAME_INTERVAL),
 
   jump() {
     const canJump = (this.onGround || this.coyoteTimer > 0) && gameState.state === GameState.PLAYING;
@@ -48,7 +45,8 @@ export const player = {
     const visualOffsetX = (drawW - CONFIG.PLAYER_WIDTH) / 2;
     const drawX = this.x - camera.x - visualOffsetX;
     const drawY = this.y - camera.y;
-    const srcX = this.frameX * CONFIG.PLAYER_FRAME_WIDTH + CONFIG.PLAYER_SRC_VISIBLE_X;
+    const frame = this.animator.getFrame();
+    const srcX = frame * CONFIG.PLAYER_FRAME_WIDTH + CONFIG.PLAYER_SRC_VISIBLE_X;
     const srcY = CONFIG.PLAYER_SRC_VISIBLE_Y;
     const srcW = CONFIG.PLAYER_SRC_VISIBLE_W;
     const srcH = CONFIG.PLAYER_SRC_VISIBLE_H;
@@ -72,6 +70,7 @@ export const player = {
     this.autoMove = false;
     this.coyoteTimer = 0;
     this.wasOnGround = false;
+    this.animator.reset();
     console.log("Player initialized at", { x: this.x, y: this.y });
   },
 
@@ -149,11 +148,8 @@ export const player = {
       this.moveRight = false;
     }
 
-    // Анимация
-    this.frameTimer += dt;
-    if (this.frameTimer > this.frameInterval) {
-      this.frameTimer = 0;
-      this.frameX = (this.frameX + 1) % this.frameCount;
-    }
+    // Анимация (обновляем только если игрок на земле и движется, или всегда? оставим как было)
+    // В старой версии анимация обновлялась всегда, но с разной скоростью? Упростим: обновляем всегда.
+    this.animator.update(dt);
   }
 };

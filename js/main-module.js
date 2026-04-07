@@ -28,7 +28,7 @@ if (window._pendingPlayerSprite) {
   window.game.player.sprite = window._pendingPlayerSprite;
   delete window._pendingPlayerSprite;
 }
-
+updateUIPositions
 async function loadLevels() {
   const [level1Data, level2Data] = await Promise.all([
     fetch('./levels/level1.json').then(r => r.json()),

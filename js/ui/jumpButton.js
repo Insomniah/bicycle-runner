@@ -1,24 +1,16 @@
 // ui/JumpButton.js
 export class JumpButton {
   constructor(options = {}) {
-    this.x = options.x || null; // привязка справа
-    this.y = options.y || null;
     this.radius = options.radius || 60;
     this.active = false;
     this.touchId = null;
+    this.centerX = options.x || 0;
+    this.centerY = options.y || 0;
   }
 
-  setPosition(canvasWidth, canvasHeight) {
-    if (this.x === null) {
-      this.centerX = canvasWidth - this.radius - 20;
-    } else {
-      this.centerX = this.x;
-    }
-    if (this.y === null) {
-      this.centerY = canvasHeight - this.radius - 20;
-    } else {
-      this.centerY = this.y;
-    }
+  setPosition(x, y) {
+    this.centerX = x;
+    this.centerY = y;
   }
 
   handleStart(touch, canvas) {
@@ -27,7 +19,7 @@ export class JumpButton {
     const touchY = touch.clientY - rect.top;
     const dx = touchX - this.centerX;
     const dy = touchY - this.centerY;
-    if (Math.hypot(dx, dy) <= this.radius) {
+    if (Math.hypot(dx, dy) <= this.radius * 1.5) {
       this.active = true;
       this.touchId = touch.identifier;
       return true;

@@ -1,4 +1,4 @@
-// core/canvas.js – модуль работы с canvas
+// core/canvas.js – модуль работы с canvas (без вызова updateUIPositions)
 export const canvas = document.getElementById("gameCanvas");
 if (!canvas) throw new Error("Canvas element #gameCanvas not found");
 export const ctx = canvas.getContext("2d");
@@ -11,11 +11,10 @@ function updateSceneScale() {
 }
 
 export function resizeCanvas() {
-  const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-  const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
-  canvas.width = vw;
-  canvas.height = vh;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
   updateSceneScale();
+  // updateUIPositions() вызывается в main-module.js, не нужно здесь
 }
 
 export function rebuildWorld() {
@@ -43,12 +42,10 @@ export function rebuildWorld() {
   }
 }
 
-// События (оставляем глобальные, но можно и экспортировать инициализатор)
 window.addEventListener("resize", resizeCanvas);
 window.addEventListener("orientationchange", () => {
   setTimeout(resizeCanvas, 200);
 });
 
-// Для обратной совместимости (старый код может использовать глобальные)
 window.resizeCanvas = resizeCanvas;
 window.rebuildWorld = rebuildWorld;

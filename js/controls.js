@@ -1,51 +1,89 @@
-// controls.js – модуль управления с виртуальным джойстиком и кнопкой прыжка
+// controls.js – улучшенное мобильное управление с динамическим масштабом
 import { canvas, ctx } from './game.js';
 import { player } from './player.js';
 import { gameState, GameState } from './core/stateMachine.js';
 import { gameStore } from './core/gameStore.js';
-import { VirtualJoystick } from './ui/virtualJoystick.js';
-import { JumpButton } from './ui/jumpButton.js';
+import { VirtualJoystick } from './ui/VirtualJoystick.js';
+import { JumpButton } from './ui/JumpButton.js';
 
 export const input = {
   isMobile: 'ontouchstart' in window
 };
 
-// Создаём экземпляры джойстика и кнопки
-export const joystick = new VirtualJoystick({ radius: 70 });
-export const jumpButton = new JumpButton({ radius: 60 });
+let joystick = null;
+let jumpButton = null;
 
-// Функция для установки позиций (вызывается при изменении canvas)
-export function updateUIPositions() {
-  if (!canvas) return;
-  joystick.setPosition(canvas.height);
-  jumpButton.setPosition(canvas.width, canvas.height);
+// Функция для получения радиуса в зависимости от размера экрана
+function getUIRadius() {
+  if (!canvas || canvas.width === 0 || canvas.height === 0) return 70; // fallback
+  const base = Math.min(canvas.width, canvas.height);
+  let radius = base * 0.2; // 20% от меньшей стороны
+  // Ограничиваем от 60 до 120 пикселей
+  radius = Math.min(120, Math.max(60, radius));
+  return radius;
 }
 
+// Обновление позиций и размеров UI
+export function updateUIPositions() {
+  if (!canvas || canvas.width === 0 || canvas.height === 0) return;
+
+  const radius = getUIRadius();
+  const margin = Math.min(canvas.width, canvas.height) * 0.05; // 5% отступ
+
+  if (!joystick) {
+    joystick = new VirtualJoystick({ radius });
+    jumpButton = new JumpButton({ radius: radius * 0.9 });
+  } else {
+    joystick.radius = radius;
+    jumpButton.radius = radius * 0.9;
+  }
+
+  // Джойстик слева снизу
+  joystick.setPosition(
+    margin + joystick.radius,
+    canvas.height - margin - joystick.radius
+  );
+
+  // Кнопка прыжка справа снизу
+  jumpButton.setPosition(
+    canvas.width - margin - jumpButton.radius,
+    canvas.height - margin - jumpButton.radius
+  );
+}
+
+// Инициализация позиций после загрузки canvas
+if (input.isMobile) {
+  // Не вызываем сразу, дождёмся первого ресайза
+  window.addEventListener('resize', updateUIPositions);
+  window.addEventListener('orientationchange', () => {
+    setTimeout(updateUIPositions, 50);
+  });
+}
+
+// Обработчики касаний
 function handleTouchStart(e) {
   e.preventDefault();
+  if (!joystick || !jumpButton) return;
   for (const touch of e.touches) {
-    // Сначала проверяем кнопку прыжка
     if (jumpButton.handleStart(touch, canvas)) {
       if (player.onGround && gameState.state === GameState.PLAYING) {
         player.jump();
       }
       continue;
     }
-    // Потом джойстик
     joystick.handleStart(touch, canvas);
   }
 }
 
 function handleTouchMove(e) {
   e.preventDefault();
+  if (!joystick) return;
   for (const touch of e.touches) {
-    // Обновляем джойстик
     joystick.handleMove(touch, canvas);
-    // Кнопка прыжка не обрабатывает движение
   }
-  // Обновляем движение игрока на основе джойстика
+  // Обновляем движение игрока
   if (joystick.active) {
-    const threshold = 0.2; // зона мёртвой зоны
+    const threshold = 0.2;
     if (joystick.deltaX < -threshold) {
       player.moveLeft = true;
       player.moveRight = false;
@@ -64,30 +102,25 @@ function handleTouchMove(e) {
 
 function handleTouchEnd(e) {
   e.preventDefault();
+  if (!joystick || !jumpButton) return;
   for (const touch of e.touches) {
-    if (jumpButton.handleEnd(touch)) {
-      // Кнопка отпущена, ничего не делаем
-    }
+    jumpButton.handleEnd(touch);
     joystick.handleEnd(touch);
   }
-  // Если не осталось активных касаний, выключаем движение
   if (e.touches.length === 0) {
     player.moveLeft = false;
     player.moveRight = false;
   }
 }
 
-// Инициализация мобильного управления
 if (input.isMobile) {
   canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
   canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
   canvas.addEventListener("touchend", handleTouchEnd, { passive: false });
   canvas.addEventListener("touchcancel", handleTouchEnd, { passive: false });
-  // Устанавливаем начальные позиции
-  updateUIPositions();
 }
 
-// Клавиатурное управление (для ПК и отладки)
+// Клавиатурное управление
 window.addEventListener("keydown", (e) => {
   if (e.code === 'Backquote') {
     e.preventDefault();
@@ -113,9 +146,8 @@ window.addEventListener("keyup", (e) => {
   if (e.key === "ArrowRight" || e.key === "d") player.moveRight = false;
 });
 
-// Отрисовка UI (джойстик и кнопка)
 export function drawUI() {
   if (!input.isMobile) return;
-  joystick.draw(ctx);
-  jumpButton.draw(ctx);
+  if (joystick) joystick.draw(ctx);
+  if (jumpButton) jumpButton.draw(ctx);
 }

@@ -1,24 +1,18 @@
 // ui/VirtualJoystick.js
 export class VirtualJoystick {
   constructor(options = {}) {
-    this.x = options.x || 150;
-    this.y = options.y || null; // если null – привязываем к низу
     this.radius = options.radius || 70;
     this.active = false;
     this.touchId = null;
-    this.deltaX = 0; // -1..1
+    this.deltaX = 0;
     this.deltaY = 0;
-    this.centerX = this.x;
-    this.centerY = this.y;
+    this.centerX = options.x || 0;
+    this.centerY = options.y || 0;
   }
 
-  setPosition(canvasHeight) {
-    if (this.y === null) {
-      this.centerY = canvasHeight - this.radius - 20;
-    } else {
-      this.centerY = this.y;
-    }
-    this.centerX = this.x;
+  setPosition(x, y) {
+    this.centerX = x;
+    this.centerY = y;
   }
 
   handleStart(touch, canvas) {
@@ -28,7 +22,8 @@ export class VirtualJoystick {
     const dx = touchX - this.centerX;
     const dy = touchY - this.centerY;
     const dist = Math.hypot(dx, dy);
-    if (dist <= this.radius) {
+    // Увеличенная зона захвата (1.5 радиуса)
+    if (dist <= this.radius * 1.5) {
       this.active = true;
       this.touchId = touch.identifier;
       this.updateDelta(touch, canvas);
@@ -47,7 +42,6 @@ export class VirtualJoystick {
     const rect = canvas.getBoundingClientRect();
     let touchX = touch.clientX - rect.left;
     let touchY = touch.clientY - rect.top;
-    // ограничиваем кругом
     let dx = touchX - this.centerX;
     let dy = touchY - this.centerY;
     const dist = Math.hypot(dx, dy);
@@ -55,7 +49,7 @@ export class VirtualJoystick {
       dx = dx / dist * this.radius;
       dy = dy / dist * this.radius;
     }
-    this.deltaX = dx / this.radius; // -1..1
+    this.deltaX = dx / this.radius;
     this.deltaY = dy / this.radius;
   }
 
@@ -79,7 +73,7 @@ export class VirtualJoystick {
     ctx.fill();
     ctx.fillStyle = "#666";
     ctx.beginPath();
-    ctx.arc(this.centerX + this.deltaX * this.radius, this.centerY + this.deltaY * this.radius, 25, 0, Math.PI * 2);
+    ctx.arc(this.centerX + this.deltaX * this.radius, this.centerY + this.deltaY * this.radius, this.radius * 0.35, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }

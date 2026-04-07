@@ -1,9 +1,10 @@
-// main-module.js – точка входа с конечным автоматом
+// main-module.js – точка входа с конечным автоматом, gameStore и рабочим рестартом
 import { resizeCanvas, rebuildWorld } from './core/canvas.js';
 import { addToLayer, drawLayers } from './core/layers.js';
 import { assetManager } from './core/assetManager.js';
 import { eventBus } from './core/eventBus.js';
 import { gameState, GameState } from './core/stateMachine.js';
+import { gameStore } from './core/gameStore.js';
 import { world } from './world.js';
 import { player } from './player.js';
 import { camera } from './camera.js';
@@ -16,16 +17,19 @@ import { decorations } from './scenery/decorations.js';
 import { level1 } from '../levels/level1.js';
 import { level2 } from '../levels/level2.js';
 
+// Глобальный объект для обратной совместимости (restart и camera для debug)
 window.game = window.game || {};
-window.game.state = {
-  debugMode: false,
-  wheelsCollected: 0,
-};
-window.game.player = player;
+window.game.player = player;          // важно: до вызова loadAllAssets
 window.game.world = world;
 window.game.camera = camera;
 window.game.gameOverUI = gameOverUI;
 window.game.eventBus = eventBus;
+
+// Применяем отложенный спрайт, если он был сохранён в assetManager
+if (window._pendingPlayerSprite) {
+  window.game.player.sprite = window._pendingPlayerSprite;
+  delete window._pendingPlayerSprite;
+}
 
 window.game.restart = function() {
   if (gameState.state === GameState.SWITCHING_LEVEL) return;
@@ -38,16 +42,15 @@ window.game.restart = function() {
   player.autoMove = false;
   player.moveLeft = false;
   player.moveRight = false;
-  window.game.state.wheelsCollected = 0;
+  gameStore.resetWheels();
   gameOverUI.hide();
   gameState.transition('restart');
 };
 
 window.game.drawDebug = function() {
-  if (!ctx || !window.game.state.debugMode) return;
-  const player = window.game.player;
+  if (!ctx || !gameStore.debugMode) return;
   const camera = window.game.camera;
-  const level = window.game.world.currentLevel;
+  const level = world.currentLevel;
   if (!player || !camera || !level) return;
 
   const x = player.x - camera.x;
@@ -72,7 +75,7 @@ window.game.drawDebug = function() {
     `PLAYER: x=${player.x.toFixed(1)}, y=${player.y.toFixed(1)}, vy=${player.vy.toFixed(2)}, onGround=${player.onGround}`,
     `LEVEL: ${level.number} Size: ${level.width} X ${level.height}`,
     `GAME: ${gameState.state}`,
-    `HITBOX: left=${x.toFixed(1)}, top=${y.toFixed(1)}, right=${rightX.toFixed(1)}, bottom=${bottomY.toFixed(1)}, width=${player.width}, height=${player.height}`,
+    `HITBOX: left=${x.toFixed(1)}, top=${y.toFixed(1)}, right=${rightX.toFixed(1)}, bottom=${bottomY.toFixed(1)}`,
     `COYOTE: ${player.coyoteTimer.toFixed(3)}`
   ];
 
@@ -86,7 +89,7 @@ function drawWheelCounter() {
   ctx.fillStyle = "white";
   ctx.font = "24px monospace";
   ctx.textAlign = "right";
-  ctx.fillText(`🔄 ${window.game.state.wheelsCollected}`, canvas.width - 20, 40);
+  ctx.fillText(`🔄 ${gameStore.wheelsCollected}`, canvas.width - 20, 40);
 }
 
 // Подписки на события автомата
@@ -97,7 +100,7 @@ eventBus.on('state.level_complete', () => {
       gameState.transition('switch');
       world.setLevel(level2);
       rebuildWorld();
-      window.game.state.wheelsCollected = 0;
+      gameStore.resetWheels();
       gameOverUI.hide();
       gameState.transition('start');
     }
@@ -112,6 +115,7 @@ eventBus.on('state.playing', () => {
   // Можно добавить логику при возобновлении игры
 });
 
+// Обработчик кнопки Restart (через EventBus)
 eventBus.on('game.restart', () => {
   window.game.restart();
 });
@@ -127,7 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     background.setImage(mountainsImg, CONFIG.BACKGROUND_MOUNTAINS);
   }
   world.setLevel(level1);
-  window.game.state.wheelsCollected = 0;
+  gameStore.resetWheels();
   addToLayer("background", skyBackground);
   addToLayer("background", sky);
   addToLayer("background", background);

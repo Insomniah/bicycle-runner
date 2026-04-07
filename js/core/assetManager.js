@@ -9,7 +9,14 @@ export const assetManager = {
         this.images.set(key, img);
         // Обратная совместимость (без optional chaining в левой части)
         if (key === 'wheel') window.wheelSprite = img;
-        if (key === 'player') window.game.player.sprite = img;
+        if (key === 'player') {
+        if (window.game.player) {
+          window.game.player.sprite = img;
+          } else {
+            console.warn('window.game.player not ready yet, storing image for later');
+            window._pendingPlayerSprite = img;
+          }
+        }
         if (key === 'mountains_bg') {
           if (!window.preloadedBackgrounds) window.preloadedBackgrounds = {};
           window.preloadedBackgrounds[CONFIG.BACKGROUND_MOUNTAINS] = img;

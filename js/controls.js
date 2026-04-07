@@ -1,7 +1,8 @@
-// controls.js – модуль управления (внедрение зависимости player)
+// controls.js – модуль управления (внедрение зависимости player и gameStore)
 import { canvas, ctx } from './game.js';
 import { player } from './player.js';
 import { gameState, GameState } from './core/stateMachine.js';
+import { gameStore } from './core/gameStore.js';
 
 export const input = {
   left: false,
@@ -80,8 +81,8 @@ if (input.isMobile) {
 window.addEventListener("keydown", (e) => {
   if (e.code === 'Backquote') {
     e.preventDefault();
-    window.game.state.debugMode = !window.game.state.debugMode;
-    console.log("Debug mode:", window.game.state.debugMode ? "ON" : "OFF");
+    gameStore.toggleDebugMode();
+    console.log("Debug mode:", gameStore.debugMode ? "ON" : "OFF");
   }
   if (e.key === "ArrowLeft" || e.key === "a") player.moveLeft = true;
   if (e.key === "ArrowRight" || e.key === "d") player.moveRight = true;

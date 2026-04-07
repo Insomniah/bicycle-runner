@@ -1,7 +1,8 @@
-// player.js – упрощённая версия с работающим автодвижением
+// player.js – упрощённая версия с работающим автодвижением и gameStore
 import { handleCollisions } from './collision.js';
 import { eventBus } from './core/eventBus.js';
 import { gameState, GameState } from './core/stateMachine.js';
+import { gameStore } from './core/gameStore.js';
 
 export const player = {
   x: CONFIG.PLAYER_START_X,
@@ -83,8 +84,8 @@ export const player = {
       for (let i = 0; i < level.wheels.length; i++) {
         const wheel = level.wheels[i];
         if (wheel.collect(this)) {
-          window.game.state.wheelsCollected++;
-          eventBus.emit('wheel.collected', { count: window.game.state.wheelsCollected });
+          gameStore.incrementWheels();
+          eventBus.emit('wheel.collected', { count: gameStore.wheelsCollected });
           level.wheels.splice(i, 1);
           i--;
         }

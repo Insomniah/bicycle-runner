@@ -67,14 +67,14 @@
     assert(player3.y === 170 && player3.vy === 0, 'handleCollisions: удар головой о твёрдую платформу');
 
     // Тест горизонтального отталкивания влево
-    const player4 = { x: 120, y: 100, vy: 0, prevY: 100, width: 24, height: 64 };
+    const player4 = { x: 99, y: 100, vy: 0, prevY: 100, width: 24, height: 64 };
     const platform4 = { x: 100, y: 80, width: 50, height: 100 };
     const level4 = { platforms: [platform4], groundPlatforms: [] };
     handleCollisions(player4, level4);
     assert(player4.x === 100 - 24, 'handleCollisions: отталкивание влево');
 
     // Тест горизонтального отталкивания вправо
-    const player5 = { x: 70, y: 100, vy: 0, prevY: 100, width: 24, height: 64 };
+    const player5 = { x: 127, y: 100, vy: 0, prevY: 100, width: 24, height: 64 };
     const platform5 = { x: 100, y: 80, width: 50, height: 100 };
     const level5 = { platforms: [platform5], groundPlatforms: [] };
     handleCollisions(player5, level5);

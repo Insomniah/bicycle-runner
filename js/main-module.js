@@ -15,6 +15,7 @@ import { sky } from './scenery/sky.js';
 import { background } from './scenery/background.js';
 import { decorations } from './scenery/decorations.js';
 import { Platform } from './entities/platform.js';
+import { updateUIPositions } from './controls.js';
 
 window.game = window.game || {};
 window.game.player = player;
@@ -146,6 +147,7 @@ eventBus.on('game.restart', () => {
 
 document.addEventListener('DOMContentLoaded', async () => {
   resizeCanvas();
+  updateUIPositions();
   world.sky = sky;
   world.background = background;
   await assetManager.loadAllAssets();
@@ -182,4 +184,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     requestAnimationFrame(gameLoop);
   }
   requestAnimationFrame(gameLoop);
+});
+
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  updateUIPositions();
+});
+
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    resizeCanvas();
+    updateUIPositions();
+  }, 100); // небольшая задержка, чтобы браузер обновил размеры
 });

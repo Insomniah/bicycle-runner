@@ -1,94 +1,110 @@
-// controls.js – модуль управления (внедрение зависимости player и gameStore)
+// controls.js – модуль управления с виртуальным джойстиком и кнопкой прыжка
 import { canvas, ctx } from './game.js';
 import { player } from './player.js';
 import { gameState, GameState } from './core/stateMachine.js';
 import { gameStore } from './core/gameStore.js';
+import { VirtualJoystick } from './ui/virtualJoystick.js';
+import { JumpButton } from './ui/jumpButton.js';
 
 export const input = {
-  left: false,
-  right: false,
-  down: false,
-  jump: false,
   isMobile: 'ontouchstart' in window
 };
 
-function getGameCoords(clientX, clientY) {
-  const rect = canvas.getBoundingClientRect();
-  return {
-    x: clientX - rect.left,
-    y: clientY - rect.top
-  };
+// Создаём экземпляры джойстика и кнопки
+export const joystick = new VirtualJoystick({ radius: 70 });
+export const jumpButton = new JumpButton({ radius: 60 });
+
+// Функция для установки позиций (вызывается при изменении canvas)
+export function updateUIPositions() {
+  if (!canvas) return;
+  joystick.setPosition(canvas.height);
+  jumpButton.setPosition(canvas.width, canvas.height);
 }
 
-export function processTouches(touches, canvasWidth, canvasHeight, config) {
-  let moveLeft = false;
-  let moveRight = false;
-  let jumpPressed = false;
-
-  const moveZoneX = config.TOUCH_MOVE_ZONE_X;
-  const moveZoneY = canvasHeight - config.TOUCH_MOVE_ZONE_Y_OFFSET;
-  const moveRadius = config.TOUCH_MOVE_ZONE_RADIUS;
-  const swipeThreshold = config.TOUCH_SWIPE_THRESHOLD;
-
-  const jumpZoneX = canvasWidth - config.TOUCH_JUMP_ZONE_X_OFFSET;
-  const jumpZoneY = canvasHeight - config.TOUCH_JUMP_ZONE_Y_OFFSET;
-  const jumpRadius = config.TOUCH_JUMP_ZONE_RADIUS;
-
-  for (const touch of touches) {
-    const pos = getGameCoords(touch.clientX, touch.clientY);
-    const dxMove = pos.x - moveZoneX;
-    const dyMove = pos.y - moveZoneY;
-    const distanceMove = Math.sqrt(dxMove * dxMove + dyMove * dyMove);
-    if (distanceMove < moveRadius) {
-      if (dxMove < -swipeThreshold) moveLeft = true;
-      if (dxMove > swipeThreshold) moveRight = true;
-    }
-
-    const dxJump = pos.x - jumpZoneX;
-    const dyJump = pos.y - jumpZoneY;
-    const distanceJump = Math.sqrt(dxJump * dxJump + dyJump * dyJump);
-    if (distanceJump < jumpRadius) {
-      jumpPressed = true;
-    }
-  }
-
-  return { moveLeft, moveRight, jumpPressed };
-}
-
-function handleTouch(e) {
+function handleTouchStart(e) {
   e.preventDefault();
-  const commands = processTouches(e.touches, canvas.width, canvas.height, CONFIG);
-  player.moveLeft = commands.moveLeft;
-  player.moveRight = commands.moveRight;
-  if (commands.jumpPressed && player.onGround && gameState.state === GameState.PLAYING) {
-    player.jump();
+  for (const touch of e.touches) {
+    // Сначала проверяем кнопку прыжка
+    if (jumpButton.handleStart(touch, canvas)) {
+      if (player.onGround && gameState.state === GameState.PLAYING) {
+        player.jump();
+      }
+      continue;
+    }
+    // Потом джойстик
+    joystick.handleStart(touch, canvas);
   }
 }
 
-if (input.isMobile) {
-  canvas.addEventListener("touchstart", handleTouch, { passive: false });
-  canvas.addEventListener("touchmove", handleTouch, { passive: false });
-  canvas.addEventListener("touchend", (e) => {
-    if (e.touches.length === 0) {
+function handleTouchMove(e) {
+  e.preventDefault();
+  for (const touch of e.touches) {
+    // Обновляем джойстик
+    joystick.handleMove(touch, canvas);
+    // Кнопка прыжка не обрабатывает движение
+  }
+  // Обновляем движение игрока на основе джойстика
+  if (joystick.active) {
+    const threshold = 0.2; // зона мёртвой зоны
+    if (joystick.deltaX < -threshold) {
+      player.moveLeft = true;
+      player.moveRight = false;
+    } else if (joystick.deltaX > threshold) {
+      player.moveLeft = false;
+      player.moveRight = true;
+    } else {
       player.moveLeft = false;
       player.moveRight = false;
-    } else {
-      handleTouch(e);
     }
-  });
+  } else {
+    player.moveLeft = false;
+    player.moveRight = false;
+  }
 }
 
+function handleTouchEnd(e) {
+  e.preventDefault();
+  for (const touch of e.touches) {
+    if (jumpButton.handleEnd(touch)) {
+      // Кнопка отпущена, ничего не делаем
+    }
+    joystick.handleEnd(touch);
+  }
+  // Если не осталось активных касаний, выключаем движение
+  if (e.touches.length === 0) {
+    player.moveLeft = false;
+    player.moveRight = false;
+  }
+}
+
+// Инициализация мобильного управления
+if (input.isMobile) {
+  canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
+  canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+  canvas.addEventListener("touchend", handleTouchEnd, { passive: false });
+  canvas.addEventListener("touchcancel", handleTouchEnd, { passive: false });
+  // Устанавливаем начальные позиции
+  updateUIPositions();
+}
+
+// Клавиатурное управление (для ПК и отладки)
 window.addEventListener("keydown", (e) => {
   if (e.code === 'Backquote') {
     e.preventDefault();
     gameStore.toggleDebugMode();
     console.log("Debug mode:", gameStore.debugMode ? "ON" : "OFF");
   }
-  if (e.key === "ArrowLeft" || e.key === "a") player.moveLeft = true;
-  if (e.key === "ArrowRight" || e.key === "d") player.moveRight = true;
+  if (e.key === "ArrowLeft" || e.key === "a") {
+    player.moveLeft = true;
+    player.moveRight = false;
+  }
+  if (e.key === "ArrowRight" || e.key === "d") {
+    player.moveRight = true;
+    player.moveLeft = false;
+  }
   if (e.key === " ") {
     e.preventDefault();
-    player.jump();
+    if (player.onGround && gameState.state === GameState.PLAYING) player.jump();
   }
 });
 
@@ -97,20 +113,9 @@ window.addEventListener("keyup", (e) => {
   if (e.key === "ArrowRight" || e.key === "d") player.moveRight = false;
 });
 
+// Отрисовка UI (джойстик и кнопка)
 export function drawUI() {
   if (!input.isMobile) return;
-
-  ctx.save();
-  ctx.globalAlpha = 0.3;
-  ctx.fillStyle = "black";
-
-  ctx.beginPath();
-  ctx.arc(150, canvas.height - 150, 100, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.arc(canvas.width - 150, canvas.height - 150, 80, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.restore();
+  joystick.draw(ctx);
+  jumpButton.draw(ctx);
 }

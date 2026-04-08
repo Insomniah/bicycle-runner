@@ -1,118 +1,94 @@
-// controls.js – улучшенное мобильное управление с динамическим масштабом
+// controls.js – мобильное управление: зоны движения и прыжка
 import { canvas, ctx } from './game.js';
 import { player } from './player.js';
 import { gameState, GameState } from './core/stateMachine.js';
 import { gameStore } from './core/gameStore.js';
-import { VirtualJoystick } from './ui/virtualJoystick.js';
-import { JumpButton } from './ui/jumpButton.js';
 
 export const input = {
   isMobile: 'ontouchstart' in window
 };
 
-let joystick = null;
-let jumpButton = null;
+// Состояние активных касаний
+let activeTouches = new Map(); // key: identifier, value: { type: 'left'|'right'|'jump' }
 
-// Функция для получения радиуса в зависимости от размера экрана
-function getUIRadius() {
-  if (!canvas || canvas.width === 0 || canvas.height === 0) return 70; // fallback
-  const base = Math.min(canvas.width, canvas.height);
-  let radius = base * 0.2; // 20% от меньшей стороны
-  // Ограничиваем от 60 до 120 пикселей
-  radius = Math.min(120, Math.max(60, radius));
-  return radius;
-}
-
-// Обновление позиций и размеров UI
-export function updateUIPositions() {
-  if (!canvas || canvas.width === 0 || canvas.height === 0) return;
-
-  const radius = getUIRadius();
-  const margin = Math.min(canvas.width, canvas.height) * 0.05; // 5% отступ
-
-  if (!joystick) {
-    joystick = new VirtualJoystick({ radius });
-    jumpButton = new JumpButton({ radius: radius * 0.9 });
-  } else {
-    joystick.radius = radius;
-    jumpButton.radius = radius * 0.9;
+// Функция определения зоны касания
+function getTouchZone(touchX, touchY) {
+  const screenWidth = canvas.width;
+  const screenHeight = canvas.height;
+  
+  // Зона прыжка: верхняя треть экрана
+  if (touchY < screenHeight / 3) {
+    return 'jump';
   }
-
-  // Джойстик слева снизу
-  joystick.setPosition(
-    margin + joystick.radius,
-    canvas.height - margin - joystick.radius
-  );
-
-  // Кнопка прыжка справа снизу
-  jumpButton.setPosition(
-    canvas.width - margin - jumpButton.radius,
-    canvas.height - margin - jumpButton.radius
-  );
+  // Зона движения: левая половина экрана – влево, правая – вправо
+  if (touchX < screenWidth / 2) {
+    return 'left';
+  } else {
+    return 'right';
+  }
 }
 
-// Инициализация позиций после загрузки canvas
-if (input.isMobile) {
-  // Не вызываем сразу, дождёмся первого ресайза
-  window.addEventListener('resize', updateUIPositions);
-  window.addEventListener('orientationchange', () => {
-    setTimeout(updateUIPositions, 50);
-  });
+// Обновление состояния движения игрока на основе активных касаний
+function updatePlayerMovement() {
+  let moveLeft = false;
+  let moveRight = false;
+  for (const touch of activeTouches.values()) {
+    if (touch.type === 'left') moveLeft = true;
+    if (touch.type === 'right') moveRight = true;
+  }
+  player.moveLeft = moveLeft;
+  player.moveRight = moveRight;
 }
 
-// Обработчики касаний
 function handleTouchStart(e) {
   e.preventDefault();
-  if (!joystick || !jumpButton) return;
   for (const touch of e.touches) {
-    if (jumpButton.handleStart(touch, canvas)) {
-      if (player.onGround && gameState.state === GameState.PLAYING) {
-        player.jump();
+    const rect = canvas.getBoundingClientRect();
+    const touchX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+    const touchY = (touch.clientY - rect.top) * (canvas.height / rect.height);
+    const zone = getTouchZone(touchX, touchY);
+    
+    if (zone === 'jump') {
+      if (!activeTouches.has(touch.identifier)) {
+        activeTouches.set(touch.identifier, { type: 'jump' });
+        if (player.onGround && gameState.state === GameState.PLAYING) {
+          player.jump();
+        }
       }
-      continue;
+    } else {
+      // Движение: если уже есть активное касание того же типа, не добавляем повторно
+      let alreadyExists = false;
+      for (const t of activeTouches.values()) {
+        if (t.type === zone) {
+          alreadyExists = true;
+          break;
+        }
+      }
+      if (!alreadyExists) {
+        activeTouches.set(touch.identifier, { type: zone });
+      }
     }
-    joystick.handleStart(touch, canvas);
+    updatePlayerMovement();
   }
 }
 
 function handleTouchMove(e) {
   e.preventDefault();
-  if (!joystick) return;
-  for (const touch of e.touches) {
-    joystick.handleMove(touch, canvas);
-  }
-  // Обновляем движение игрока
-  if (joystick.active) {
-    const threshold = 0.2;
-    if (joystick.deltaX < -threshold) {
-      player.moveLeft = true;
-      player.moveRight = false;
-    } else if (joystick.deltaX > threshold) {
-      player.moveLeft = false;
-      player.moveRight = true;
-    } else {
-      player.moveLeft = false;
-      player.moveRight = false;
-    }
-  } else {
-    player.moveLeft = false;
-    player.moveRight = false;
-  }
+  // При движении не меняем зоны, только если палец перешёл в другую зону – можно обновить, но для простоты игнорируем
+  // Чтобы избежать залипания, можно пересчитать зоны, но лучше оставить как есть.
 }
 
 function handleTouchEnd(e) {
   e.preventDefault();
-  if (!joystick || !jumpButton) return;
-  for (const touch of e.touches) {
-    jumpButton.handleEnd(touch);
-    joystick.handleEnd(touch);
+  for (const touch of e.changedTouches) {
+    if (activeTouches.has(touch.identifier)) {
+      activeTouches.delete(touch.identifier);
+    }
   }
-  if (e.touches.length === 0) {
-    player.moveLeft = false;
-    player.moveRight = false;
-  }
+  updatePlayerMovement();
 }
 
+// Инициализация мобильного управления
 if (input.isMobile) {
   canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
   canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
@@ -120,7 +96,7 @@ if (input.isMobile) {
   canvas.addEventListener("touchcancel", handleTouchEnd, { passive: false });
 }
 
-// Клавиатурное управление
+// Клавиатурное управление (для ПК)
 window.addEventListener("keydown", (e) => {
   if (e.code === 'Backquote') {
     e.preventDefault();
@@ -146,8 +122,24 @@ window.addEventListener("keyup", (e) => {
   if (e.key === "ArrowRight" || e.key === "d") player.moveRight = false;
 });
 
+// Отрисовка зон (опционально, для отладки)
 export function drawUI() {
   if (!input.isMobile) return;
-  if (joystick) joystick.draw(ctx);
-  if (jumpButton) jumpButton.draw(ctx);
+  
+  ctx.save();
+  ctx.globalAlpha = 0.2;
+  ctx.fillStyle = "#888";
+  
+  // Зона прыжка (верхняя треть)
+  ctx.fillRect(0, 0, canvas.width, canvas.height / 3);
+  
+  // Левая зона движения
+  ctx.fillStyle = "#44f";
+  ctx.fillRect(0, canvas.height / 3, canvas.width / 2, canvas.height * 2 / 3);
+  
+  // Правая зона движения
+  ctx.fillStyle = "#4f4";
+  ctx.fillRect(canvas.width / 2, canvas.height / 3, canvas.width / 2, canvas.height * 2 / 3);
+  
+  ctx.restore();
 }

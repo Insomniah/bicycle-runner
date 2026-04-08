@@ -15,7 +15,6 @@ import { sky } from './scenery/sky.js';
 import { background } from './scenery/background.js';
 import { decorations } from './scenery/decorations.js';
 import { Platform } from './entities/platform.js';
-import { updateUIPositions } from './controls.js';
 
 window.game = window.game || {};
 window.game.player = player;
@@ -28,7 +27,7 @@ if (window._pendingPlayerSprite) {
   window.game.player.sprite = window._pendingPlayerSprite;
   delete window._pendingPlayerSprite;
 }
-updateUIPositions
+
 async function loadLevels() {
   const [level1Data, level2Data] = await Promise.all([
     fetch('./levels/level1.json').then(r => r.json()),
@@ -147,7 +146,6 @@ eventBus.on('game.restart', () => {
 
 document.addEventListener('DOMContentLoaded', async () => {
   resizeCanvas();
-  updateUIPositions();
   world.sky = sky;
   world.background = background;
   await assetManager.loadAllAssets();
@@ -158,7 +156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   const [level1, level2] = await loadLevels();
-  window._cachedLevel2 = level2; // кешируем второй уровень
+  window._cachedLevel2 = level2;
   world.setLevel(level1);
   gameStore.resetWheels();
   addToLayer("background", skyBackground);
@@ -186,14 +184,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   requestAnimationFrame(gameLoop);
 });
 
+// Обработчики resize и orientationchange (без updateUIPositions)
 window.addEventListener('resize', () => {
   resizeCanvas();
-  updateUIPositions();
 });
 
 window.addEventListener('orientationchange', () => {
   setTimeout(() => {
     resizeCanvas();
-    updateUIPositions();
-  }, 100); // небольшая задержка, чтобы браузер обновил размеры
+  }, 100);
 });

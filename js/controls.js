@@ -125,9 +125,9 @@ window.addEventListener("keyup", (e) => {
 // Отрисовка зон (опционально, для отладки)
 export function drawUI() {
   if (!input.isMobile) return;
-  
+  if (!gameStore.debugMode) return; // рисуем только в режиме отладки
   ctx.save();
-  ctx.globalAlpha = 0.2;
+  ctx.globalAlpha = 0.1;
   ctx.fillStyle = "#888";
   
   // Зона прыжка (верхняя треть)
